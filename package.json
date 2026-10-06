@@ -10,7 +10,7 @@
     "eslint": "10.6.0",
     "espree": "10.4.0",
     "jiti": "^2.7.0",
-    "postcss": "8.5.23",
+    "postcss": "8.5.28",
     "prettier": "3.8.1",
     "stylelint": "17.5.0",
     "typescript": "5.9.3"
