@@ -97,7 +97,7 @@ module DiscourseDumbcourse
       ua = request.user_agent.to_s
       return nil if CrawlerDetection.crawler?(ua, request.headers["HTTP_VIA"])
       wanted =
-        preference == "1" ||
+        (preference == "1" && SiteSetting.dumbcourse_open_links_here) ||
           (SiteSetting.dumbcourse_redirect_legacy_browsers && legacy_browser?(ua))
       return nil unless wanted
 

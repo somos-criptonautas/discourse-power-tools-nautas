@@ -703,6 +703,14 @@ jtech_dumbcourse:
     depends_on:
       - "dumbcourse_enabled"
 
+  # Power Tools Nautas: off, because the Android app decides where forum
+  # links open.
+  dumbcourse_open_links_here:
+    default: false
+    client: false
+    depends_on:
+      - "dumbcourse_enabled"
+
   # Leaderboard (discourse-gamification). 0 hides the menu entry.
   dumbcourse_leaderboard_id:
     default: 0

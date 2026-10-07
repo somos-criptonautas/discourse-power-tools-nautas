@@ -228,6 +228,7 @@ module DiscourseDumbcourse
         noReactionCategoryIds: no_reaction_category_ids,
         reqpmCountryCode: setting(:reqpm_default_country_code).to_s,
         leaderboardId: setting(:dumbcourse_leaderboard_id).to_i,
+        openLinksHere: !!setting(:dumbcourse_open_links_here),
         tagsEnabled: !!SiteSetting.tagging_enabled,
         maxPostLength: SiteSetting.max_post_length,
         minPostLength: SiteSetting.min_post_length,

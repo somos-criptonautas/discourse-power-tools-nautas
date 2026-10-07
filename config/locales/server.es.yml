@@ -136,6 +136,7 @@ es:
     dumbcourse_default_theme: Esquema de color inicial. «auto» sigue el modo claro/oscuro del teléfono (oscuro si no tiene). Cada visita puede cambiarlo y queda guardado en su navegador.
     dumbcourse_device_pairing_enabled: Ofrece «Entrar con otro dispositivo». El teléfono muestra un código y se aprueba desde cualquier dispositivo con sesión iniciada. Evita escribir la contraseña en un teclado numérico. Los códigos duran diez minutos y solo sirven en el navegador que los pidió.
     dumbcourse_redirect_legacy_browsers: Manda a Dumbcourse a quien usa un navegador que no puede con el sitio completo (KaiOS, Opera Mini, Android, Chrome o Firefox viejos), también desde enlaces de acceso y de cambio de contraseña. También a quienes eligen «Abrir enlaces del foro acá» en Dumbcourse. Nunca a los buscadores.
+    dumbcourse_open_links_here: Ofrece «Abrir enlaces del foro acá» en las preferencias de Dumbcourse, que manda las páginas del sitio completo de ese navegador a Dumbcourse. Apagado cuando una app instalada ya decide dónde se abren los enlaces del foro.
     dumbcourse_leaderboard_id: ID del ranking de discourse-gamification que se muestra en el menú. 0 lo oculta.
     dumbcourse_default_view: Lista que se abre en la raíz. «Mis respuestas» cae a Recientes sin sesión.
     dumbcourse_show_category_names: Muestra la categoría en cada fila de la lista.

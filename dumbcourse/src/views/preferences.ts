@@ -168,12 +168,14 @@ export function preferencesRoute(ctx: RouteContext): void {
       <ul class="rows">
         ${valueRow("defaultView", "Start screen", startLabel, "home")}
         ${toggleRow("live", "Live updates", prefs.live, "refresh")}
-        ${toggleRow(
-          "prefer",
-          "Open forum links here",
-          prefersDumbcourse(),
-          "phone"
-        )}
+        ${settings.openLinksHere
+          ? toggleRow(
+              "prefer",
+              "Open forum links here",
+              prefersDumbcourse(),
+              "phone"
+            )
+          : ""}
       </ul>
       ${u
         ? html`<h2 class="section-title">Account</h2>

@@ -527,6 +527,9 @@ en:
       email-login and password-reset links. Members who choose "Open forum
       links here" in Dumbcourse's preferences are sent there too. Search
       engine crawlers are never redirected.
+    dumbcourse_open_links_here: Offer "Open forum links here" in Dumbcourse's
+      preferences, which sends that browser's full-site pages to Dumbcourse.
+      Off when an installed app already decides where forum links open.
     dumbcourse_leaderboard_id: Id of the discourse-gamification leaderboard
       Dumbcourse shows in its menu. 0 hides it.
 

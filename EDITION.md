@@ -34,6 +34,11 @@ upstream merges stay easy.
   composer gate in `initializers/precheck-prompt.ts` and the checklist
   accept endpoint (prepended in `sub_plugins/nautas.rb`).
 - **REQ-PM** is off by default and assumes no country code.
+- **Upstream's JTech theme, app icon and row click** are off by default
+  (`jtech_theme_install`, `jtech_app_icon`, `jtech_row_click_theme_ids`).
+- **"Open forum links here"** in Dumbcourse is off
+  (`dumbcourse_open_links_here`): the Android app (comunidad-criptonautas-app)
+  decides where forum links open.
 - **Migrations.** Disteleplus listen rows cascade with their message
   (`db/post_migrate`), and the Aug 30 migration only resets the module's
   master toggle.

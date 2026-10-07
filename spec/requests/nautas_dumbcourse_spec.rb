@@ -19,6 +19,13 @@ RSpec.describe "Dumbcourse, Power Tools Nautas additions" do
     expect(boot_data["leaderboardId"]).to eq(7)
   end
 
+  it "ignores the open-links-here cookie while the setting is off" do
+    get "/latest", headers: { "HTTP_ACCEPT" => "text/html", "HTTP_COOKIE" => "dumbcourse_prefer=1" }
+    expect(response.status).to eq(200)
+    get "/dumb/login"
+    expect(boot_data["openLinksHere"]).to eq(false)
+  end
+
   it "signs in locally by default" do
     get "/dumb/login"
     expect(boot_data["auth"]["external"]).to eq(false)

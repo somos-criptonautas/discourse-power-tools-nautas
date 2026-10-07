@@ -22,6 +22,7 @@ RSpec.describe "Dumbcourse redirect for old browsers" do
   before do
     SiteSetting.dumbcourse_enabled = true
     SiteSetting.dumbcourse_redirect_legacy_browsers = true
+    SiteSetting.dumbcourse_open_links_here = true
   end
 
   def visit_as(ua, path, cookie: nil)

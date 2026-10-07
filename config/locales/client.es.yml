@@ -134,12 +134,17 @@ es:
       create:
         label: Publicar anuncio
       composer:
-        in_editor: Se agregan en el editor de abajo.
+        in_editor: Las fotos y cualquier otro detalle para quien compra van en el editor de abajo.
         optional: opcional
         details_needed: Obligatorio para %{options}
         missing_details: "%{option} en %{field} necesita detalles: escribilos en el cuadro bajo las opciones."
         other_details: Otros detalles
         missing: Falta completar %{fields} antes de publicar.
+      status:
+        available: Disponible
+        sold: Vendido
+        mark_sold: Marcar como vendido
+        mark_available: Marcar como disponible
     reqpm:
       title: REQ-PM
       button:

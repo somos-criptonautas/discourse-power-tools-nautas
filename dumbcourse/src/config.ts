@@ -76,6 +76,7 @@ export interface BootSettings {
   noReactionCategoryIds: number[];
   reqpmCountryCode: string;
   leaderboardId: number;
+  openLinksHere: boolean;
   tagsEnabled: boolean;
   maxPostLength: number;
   minPostLength: number;
@@ -137,6 +138,7 @@ const DEFAULTS: BootSettings = {
   noReactionCategoryIds: [],
   reqpmCountryCode: "1",
   leaderboardId: 0,
+  openLinksHere: false,
   tagsEnabled: false,
   maxPostLength: 32000,
   minPostLength: 1,
