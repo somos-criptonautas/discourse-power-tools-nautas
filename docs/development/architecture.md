@@ -8,7 +8,7 @@ Jtech Tools is one Discourse plugin made of several modules. Each module was onc
 
 ```ruby
 %w[dislike another_smtp mini_mod mod_categories dumbcourse translator_tweaks
-   smart_search popup_notifications disteleplus reqpm].each do |sub|
+   smart_search popup_notifications disteleplus reqpm listing_format].each do |sub|
   instance_eval(File.read("sub_plugins/#{sub}.rb"), ...)
 end
 ```
@@ -33,7 +33,7 @@ So a sub-plugin file reads like any `plugin.rb` body: `after_initialize`, `on(:e
 | `assets/stylesheets/` | SCSS |
 | `dumbcourse/` | The Dumbcourse app source (TypeScript, built to `public/`) — see [dumbcourse.md](dumbcourse.md) |
 | `public/` | Built Dumbcourse files, committed |
-| `scripts/` | One-off `rails runner` scripts |
+| `scripts/` | One-off `rails runner` scripts (Ruby); theme sync and checks (`scripts/theme/`); the README images (`pnpm readme:images`) |
 | `spec/` | RSpec: `lib/`, `requests/`, `jobs/`, `system/` |
 | `types/` | TypeScript declarations for Discourse modules |
 

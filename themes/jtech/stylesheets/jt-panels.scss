@@ -1,0 +1,139 @@
+// Menus, cards, modals: flat surface, hairline border, no heavy shadows
+// (.drop-down and .is-expanded: core's own selectors, which outranked these
+// and left menus and dropdowns at its small radius)
+.menu-panel,
+.menu-panel.drop-down,
+// .show: core keeps an empty, zero-height card in the page while none is
+// open, and a border on it draws a stray line under the content
+.user-card.show,
+.group-card.show,
+// core draws d-menus on the inner box; the outer one is just a positioner
+.fk-d-menu .fk-d-menu__inner-content,
+.select-kit.is-expanded .select-kit-body,
+.popup-menu {
+  border: 1px solid var(--jt-border);
+  border-radius: var(--jt-radius-lg);
+  box-shadow: var(--jt-shadow-menu);
+}
+
+// User and group cards: core lifts the big avatar 3.3em above the card's top
+// edge. On the theme's hairline card that reads as a block that slipped out
+// of place, and it covers whatever is behind the card (the post's name row).
+// It sits inside the card instead.
+.user-card,
+.group-card {
+  --avatar-margin: 0;
+}
+
+// jtech-tools' REQ-PM is a btn-small; on the card it sits under Message and
+// Follow, which core sizes from 1rem, so it came out a size smaller and 8px
+// shorter. It takes their text size and padding.
+.user-card .usercard-controls .reqpm-user-button.btn {
+  padding: 0.5em 0.65em;
+  font-size: var(--font-0);
+}
+
+// Full-height slide-in panels (phones, narrow windows) sit against the
+// screen edge: no rounded corners there.
+.menu-panel.slide-in {
+  border-radius: 0;
+}
+
+.d-modal__container {
+  background: var(--jt-surface-raised);
+  border-radius: var(--jt-radius-xl);
+  box-shadow: var(--jt-shadow-modal);
+}
+
+// Phone dialogs are bottom sheets: round the top only.
+html.mobile-view .d-modal:not(.jt-cmdk) .d-modal__container {
+  border-radius: var(--jt-radius-xl) var(--jt-radius-xl) 0 0;
+}
+
+.d-modal__header,
+.d-modal__footer {
+  border-color: var(--jt-border);
+}
+
+// A post's edit history: core underlines a revision's author and date with a
+// 3px grey bar, the only heavy line in any dialog. It's the dialog's hairline,
+// like the ones under its header and over its buttons.
+.d-modal.history-modal #revision {
+  border-bottom: 1px solid var(--jt-border);
+}
+
+// Its buttons (Edit Post, Revert to revision N, Hide revision) share one row
+// and core cuts their labels short to fit it: on a phone they read "Edit …",
+// "Revert to rev…" and "Hide rev…". The row wraps instead, so each label is
+// whole; a button only shrinks with an ellipsis if a line is too narrow even
+// for it alone.
+.d-modal.history-modal #revision-footer-buttons {
+  flex-wrap: wrap;
+}
+
+// Over them, the arrows between revisions and the "4 ↔ 5 / 5" between them
+// fill the width on a narrow screen, but core keeps the numbers at least 7em
+// wide, so at 320px (a Qin F21) the last arrow ran 24px into the sheet's
+// padding, against the screen's edge. The numbers take their own width; a
+// long count wraps onto two lines instead of pushing the arrows out.
+@media (width < 48rem) {
+  .d-modal.history-modal #revision-numbers {
+    min-width: 0;
+  }
+}
+
+// Not while closed: core keeps a zero-height composer at the bottom of the
+// window, and its border drew a hairline along the bottom of every page.
+#reply-control {
+  box-shadow: none;
+
+  &:not(.closed) {
+    border-top: 1px solid var(--jt-border);
+  }
+}
+
+// The composer without a preview lines up with the topic column. On sidebar
+// pages core places it at the sidebar's width plus its gap and forgets the
+// page's gutter (it adds it on pages without a sidebar), so it started 0.67em
+// left of everything above it. The gutter goes back on the left and comes off
+// the width, so the left edge meets the content and the right one stays put.
+// On a topic it also ends where the posts do: between about 925px and 1320px
+// core's width ran past them and over the timeline's buttons (the posts'
+// width is kept in --jt-posts-width by api-initializers/jt-posts-width).
+body.has-sidebar-page #reply-control:not(.fullscreen).hide-preview {
+  --jt-gutter: var(--d-wrap-padding-x, 0.67em);
+  max-width: min(
+    calc(var(--topic-width) + var(--topic-avatar-width) - var(--jt-gutter)),
+    var(--jt-posts-width, 100vw)
+  );
+  margin-left: calc(
+    var(--d-sidebar-width) + var(--layout-gap) + var(--jt-gutter)
+  );
+
+  // core's: the window is wider than the page, which is centred
+  @media screen and (width >= 1390px) {
+    margin-left: calc(var(--layout-gap) + var(--jt-gutter));
+  }
+
+  // core's: the topic column starts to shrink, the composer fills the content
+  @media screen and (width <= 1180px) {
+    width: calc(
+      100% - var(--d-sidebar-width) - var(--layout-gap) - 2 * var(--jt-gutter)
+    );
+  }
+}
+
+// A message's title row on phones: core puts the tag picker beside the title
+// at up to half the width, but neither can shrink below its own width (the
+// title is a 20-character input), so for anyone who can tag messages the
+// picker ran 36px off a 375px screen. The row wraps: the picker gets the line
+// under the title, as a topic's category and tags do.
+@media (width < 40rem) {
+  #reply-control .title-and-category {
+    flex-wrap: wrap;
+
+    > .tags-input {
+      max-width: none;
+    }
+  }
+}

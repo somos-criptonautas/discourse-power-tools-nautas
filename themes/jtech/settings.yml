@@ -1,0 +1,225 @@
+monochrome_categories:
+  type: bool
+  default: true
+monochrome_letter_avatars:
+  type: bool
+  default: true
+monochrome_heatmap:
+  type: bool
+  default: true
+lucide_icons:
+  type: bool
+  default: true
+monochrome_flair:
+  type: bool
+  default: true
+corner_style:
+  type: enum
+  default: squircle
+  choices:
+    - squircle
+    - sharp
+    - soft
+    - round
+topic_cards:
+  type: bool
+  default: true
+hero_enabled:
+  type: bool
+  default: true
+hero_title:
+  type: string
+  default: "Welcome to JTech Forums"
+hero_subtitle:
+  type: string
+  default: "The most precise, accurate and up-to-date tech and filtering information for the Orthodox community. Join a conversation, and remember to be kind and helpful."
+hero_search_placeholder:
+  type: string
+  default: "Search phones, filters, guides…"
+hero_dismissible:
+  type: bool
+  default: true
+hero_planet:
+  type: bool
+  default: true
+footer_enabled:
+  type: bool
+  default: true
+footer_tagline:
+  type: string
+  default: "Precise, up-to-date tech and filtering information for the Orthodox community."
+footer_links:
+  type: objects
+  default:
+    - section: Forum
+      title: Latest
+      url: /latest
+    - section: Forum
+      title: Categories
+      url: /categories
+    - section: Forum
+      title: Guidelines
+      url: /guidelines
+    - section: Forum
+      title: About
+      url: /about
+    - section: JTech
+      title: Homepage
+      url: https://jtechforums.org/home
+    - section: JTech
+      title: Contact
+      url: https://jtechforums.org/home/contact
+    - section: JTech
+      title: eGate filter
+      url: https://jtechforums.org/home/egate
+    - section: JTech
+      title: Dumbcourse
+      url: https://jtechforums.org/dumb
+    - section: Legal
+      title: Terms
+      url: https://jtechforums.org/terms
+    - section: Legal
+      title: Privacy
+      url: https://jtechforums.org/privacy-policy
+  schema:
+    name: link
+    identifier: title
+    properties:
+      section:
+        type: string
+        required: true
+        validations:
+          min_length: 1
+          max_length: 40
+      title:
+        type: string
+        required: true
+        validations:
+          min_length: 1
+          max_length: 60
+      url:
+        type: string
+        required: true
+        validations:
+          min_length: 1
+          max_length: 2048
+category_banners:
+  type: bool
+  default: true
+tag_banners:
+  type: bool
+  default: true
+external_link_icon:
+  type: bool
+  default: true
+header_home_url:
+  type: string
+  default: "/home"
+color_mode_toggle:
+  type: bool
+  default: true
+header_color_toggle:
+  type: bool
+  default: false
+overlay_scrollbar:
+  type: bool
+  default: true
+back_to_top:
+  type: bool
+  default: true
+command_menu:
+  type: bool
+  default: true
+card_thumbnails:
+  type: bool
+  default: true
+code_language_labels:
+  type: bool
+  default: true
+code_line_numbers:
+  type: bool
+  default: true
+internal_hosts:
+  type: list
+  list_type: simple
+  default: "jtechforums.org|forums.jtechforums.org|forums.jtechforums.com|forums.mitmachim.com"
+reading_progress:
+  type: bool
+  default: true
+quick_look:
+  type: bool
+  default: true
+first_reply_prompt:
+  type: bool
+  default: true
+first_reply_prompt_hidden_categories:
+  type: list
+  list_type: category
+  default: ""
+user_card_last_seen:
+  type: bool
+  default: true
+topic_jump_buttons:
+  type: bool
+  default: true
+hide_lock_icons:
+  type: bool
+  default: true
+mobile_small_logo:
+  type: bool
+  default: true
+gated_categories:
+  type: list
+  list_type: category
+  default: ""
+gated_tags:
+  type: list
+  list_type: tag
+  default: ""
+copy_post_button:
+  type: bool
+  default: true
+copy_post_groups:
+  type: list
+  list_type: group
+  default: "11" # trust_level_1
+  resolve_group_membership: true
+closed_reply_warning:
+  type: bool
+  default: true
+selection_search:
+  type: bool
+  default: true
+replies_filter:
+  type: bool
+  default: true
+print_button_categories:
+  type: list
+  list_type: category
+  default: ""
+table_of_contents:
+  type: bool
+  default: true
+table_of_contents_categories:
+  type: list
+  list_type: category
+  default: ""
+voice_recorder:
+  type: bool
+  default: true
+post_badges:
+  type: list
+  list_type: compact
+  default: ""
+image_carousels:
+  type: bool
+  default: true
+sidebar_inboxes:
+  type: bool
+  default: true
+reader_mode:
+  type: bool
+  default: true
+qr_code_share:
+  type: bool
+  default: true

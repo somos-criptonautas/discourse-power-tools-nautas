@@ -1,0 +1,319 @@
+// Shape + edges. Corner radii come from the `corner_style` setting; the rest
+// is the JTech Market edge recipe: translucent hairlines, dividers that fade
+// out instead of stopping dead, glass on layered surfaces, press feedback.
+:root {
+  @if $corner_style == "sharp" {
+    --jt-radius-sm: 6px;
+    --jt-radius-md: 8px;
+    --jt-radius-lg: 12px;
+    --jt-radius-xl: 14px;
+    --jt-radius-control: 6px;
+    --jt-radius-pill: 6px;
+    --jt-radius-avatar: 22%;
+  } @else if $corner_style == "soft" {
+    --jt-radius-sm: 8px;
+    --jt-radius-md: 10px;
+    --jt-radius-lg: 16px;
+    --jt-radius-xl: 20px;
+    --jt-radius-control: 10px;
+    --jt-radius-pill: 999px;
+    --jt-radius-avatar: 30%;
+  } @else if $corner_style == "round" {
+    --jt-radius-sm: 10px;
+    --jt-radius-md: 14px;
+    --jt-radius-lg: 18px;
+    --jt-radius-xl: 24px;
+    --jt-radius-control: 999px;
+    --jt-radius-pill: 999px;
+    --jt-radius-avatar: 50%;
+  } @else {
+    // squircle: superellipse corners via `corner-shape`. A squircle hugs the
+    // corner more tightly than a circle, so it takes bigger radii to read the
+    // same size; browsers without it get plain radii a bit over half as big.
+    --jt-radius-sm: 6px;
+    --jt-radius-md: 8px;
+    --jt-radius-lg: 13px;
+    --jt-radius-xl: 16px;
+    --jt-radius-control: 8px;
+    --jt-radius-pill: 6px;
+    --jt-radius-avatar: 30%;
+
+    // a squircle at 50% is the rounded box an app icon is
+    @supports (corner-shape: squircle) {
+      --jt-radius-sm: 10px;
+      --jt-radius-md: 14px;
+      --jt-radius-lg: 22px;
+      --jt-radius-xl: 28px;
+      --jt-radius-control: 12px;
+      --jt-radius-pill: 10px;
+      --jt-radius-avatar: 50%;
+    }
+  }
+
+  // One radius for everything you press, type in or pick from (buttons,
+  // fields, dropdowns, menu rows), one for surfaces (cards, menus), one
+  // for blocks in a post. Fields and core's small surfaces take it capped
+  // at md: with corner_style "round" a control is a 999px pill, which a
+  // tall field (the composer) or a toast can't be.
+  --jt-radius-field: min(var(--jt-radius-control), var(--jt-radius-md));
+  --d-border-radius: var(--jt-radius-field);
+  --d-border-radius-large: var(--jt-radius-lg);
+  --d-button-border-radius: var(--jt-radius-control);
+  --d-input-border-radius: var(--jt-radius-field);
+  --d-nav-pill-border-radius: var(--jt-radius-control);
+  --d-tag-border-radius: var(--jt-radius-pill);
+  --d-post-control-border-radius: var(--jt-radius-control);
+  --token-radius-normal: var(--jt-radius-sm);
+  --token-radius-large: var(--jt-radius-lg);
+  --jt-fade: min(2.5rem, 20%);
+  --jt-motion: 0.18s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@if $corner_style == "squircle" {
+  @supports (corner-shape: squircle) {
+    * {
+      corner-shape: squircle;
+    }
+
+    // Things that are meant to be true circles (avatars are rounded boxes,
+    // below)
+    .avatar-flair,
+    input[type="radio"],
+    .emoji,
+    .d-icon,
+    .badge-notification,
+    .d-toggle-switch__checkbox-slider,
+    .spinner,
+    .loading-spinner {
+      corner-shape: round;
+    }
+  }
+}
+
+// Horizontal hairline that dissolves at both ends
+@mixin jt-rule-x($color: var(--jt-border)) {
+  border-image: linear-gradient(
+      to right,
+      transparent,
+      #{$color} var(--jt-fade),
+      #{$color} calc(100% - var(--jt-fade)),
+      transparent
+    )
+    1;
+}
+
+@mixin jt-glass($bg: var(--jt-glass)) {
+  background-color: $bg;
+  backdrop-filter: blur(16px) saturate(180%);
+}
+
+// ── Faded dividers ────────────────────────────────────────
+.d-header {
+  @include jt-rule-x;
+}
+
+// Table rows can't take border-image, so each cell paints its own 1px line and
+// the end cells fade it in/out. (Card lists draw their own surfaces.)
+.topic-list:not(.jt-cards) .topic-list-item,
+.latest-topic-list-item {
+  > td {
+    border-bottom: 0 !important;
+    background-image: linear-gradient(var(--jt-border), var(--jt-border));
+    background-size: 100% 1px;
+    background-position: bottom;
+    background-repeat: no-repeat;
+  }
+
+  > td:first-child {
+    background-image: linear-gradient(
+      to right,
+      transparent,
+      var(--jt-border) 2.5rem
+    );
+  }
+
+  > td:last-child {
+    background-image: linear-gradient(
+      to left,
+      transparent,
+      var(--jt-border) 2.5rem
+    );
+  }
+}
+
+.topic-list:not(.jt-cards) .topic-list-header th {
+  border-bottom: 0;
+  background-image: linear-gradient(var(--jt-border), var(--jt-border));
+  background-size: 100% 1px;
+  background-position: bottom;
+  background-repeat: no-repeat;
+}
+
+// Rounded hover pill on list rows. Row backgrounds go through core's own
+// variables: an !important background would also kill the fade on newly
+// arrived topics (.highlighted) and the bulk-selected tint.
+.topic-list:not(.jt-cards) {
+  --topic-list-item-background-color: transparent;
+  --topic-list-item-background-color--visited: transparent;
+}
+
+.topic-list:not(.jt-cards) .topic-list-item {
+  > td {
+    transition: background-color var(--jt-motion);
+  }
+
+  > td:first-child {
+    border-radius: var(--jt-radius-md) 0 0 var(--jt-radius-md);
+  }
+
+  > td:last-child {
+    border-radius: 0 var(--jt-radius-md) var(--jt-radius-md) 0;
+  }
+
+  &:hover > td {
+    background-color: var(--jt-hover);
+  }
+}
+
+// Post separators: fade in from the avatar side, out on the far side
+.topic-post {
+  .topic-avatar {
+    border-image: linear-gradient(to right, transparent, var(--jt-border)) 1;
+  }
+
+  .topic-body {
+    border-image: linear-gradient(
+        to right,
+        var(--jt-border) calc(100% - var(--jt-fade)),
+        transparent
+      )
+      1;
+  }
+}
+
+// ── Radii on surfaces core doesn't tokenise ───────────────
+.d-header .d-header-icons .icon,
+.header-sidebar-toggle button {
+  border-radius: var(--jt-radius-control);
+}
+
+.topic-map,
+.alert,
+aside.quote,
+aside.onebox,
+.cooked pre code,
+.cooked table {
+  border-radius: var(--jt-radius-md);
+}
+
+.select-kit .select-kit-header:not(.btn) {
+  border-radius: var(--jt-radius-field);
+}
+
+// Buttons core squares off: the composer's corner controls and Discard, the
+// user menu's tabs and its bottom bar
+#reply-control .composer-controls .btn,
+#reply-control .save-or-cancel .btn,
+.user-menu.revamped .menu-tabs-container .btn,
+.user-menu.revamped .panel-body-bottom .btn {
+  border-radius: var(--jt-radius-control);
+}
+
+// The composer's writing box. Core's redesigned composer squares it off
+// ("core overrule"); it had only matched the controls by chance. Core's own
+// rounded top for the focused box on phones is more specific and still wins.
+#reply-control .d-editor-textarea-wrapper {
+  border-radius: var(--jt-radius-control);
+}
+
+// Avatars: a rounded box like the rest of the theme's shapes (a squircle
+// where corner-shape works), a circle only with corner_style "round"
+img.avatar,
+.avatar-wrapper,
+.placeholder-avatar,
+.user-card a.card-huge-avatar {
+  border-radius: var(--jt-radius-avatar);
+}
+
+.cooked img:not(.emoji, .avatar, .site-icon) {
+  border-radius: var(--jt-radius-sm);
+}
+
+// Videos, rounded like the images around them: core's black box for an
+// uploaded video (before and after it plays) and YouTube's and Vimeo's frame
+.cooked
+  :is(.video-placeholder-container, .video-container, .lazy-video-container) {
+  border-radius: var(--jt-radius-sm);
+  overflow: clip;
+}
+
+#reply-control {
+  border-radius: var(--jt-radius-xl) var(--jt-radius-xl) 0 0;
+  overflow: hidden;
+}
+
+// Phones position the composer's category / tag dropdowns absolutely, hanging
+// out of the composer; clipping would cut them off.
+html.mobile-view #reply-control {
+  overflow: visible;
+}
+
+.timeline-container .topic-timeline .timeline-handle {
+  border-radius: var(--jt-radius-pill);
+}
+
+// ── Layered surfaces ──────────────────────────────────────
+// Glass is for chrome (the header). Menus and cards carry dense text, so they
+// stay solid — the marketplace rule for reading surfaces.
+.menu-panel,
+.fk-d-menu__inner-content,
+// .show: core keeps an empty, zero-height card in the page while none is
+// open, and a border on it draws a stray line under the content
+.user-card.show,
+.group-card.show,
+.select-kit .select-kit-body,
+.search-menu .results {
+  background-color: var(--jt-surface-raised);
+}
+
+// ── Motion: every press answers ───────────────────────────
+.btn,
+.sidebar-section-link,
+.nav-pills > li > a,
+.d-header-icons .icon,
+.category-box,
+.select-kit-header {
+  transition:
+    background-color var(--jt-motion),
+    border-color var(--jt-motion),
+    color var(--jt-motion),
+    transform var(--jt-motion),
+    translate var(--jt-motion);
+}
+
+// Press feedback moves the content, never the button box: menus and popups
+// anchor to the trigger's box on mousedown, so moving it leaves them 1px off.
+// With `translate`, not `transform`: in Hebrew core mirrors arrow-like icons
+// (Reply, chevrons, arrows) with a transform, and a pressed button's
+// transform replaced it, so the icon flipped round for as long as it was
+// held. The two properties combine.
+.btn > :is(.d-icon, .d-button-label),
+.d-header-icons .icon > .d-icon {
+  transition: translate var(--jt-motion);
+}
+
+.btn:active:not(:disabled, .disabled) > :is(.d-icon, .d-button-label),
+.d-header-icons .icon:active > .d-icon,
+.category-box:active {
+  translate: 0 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

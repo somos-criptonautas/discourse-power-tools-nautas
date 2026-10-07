@@ -130,6 +130,16 @@ es:
         download: Descargar
         fullscreen: Pantalla completa
         unavailable: No se pudo cargar el audio.
+    listing_format:
+      create:
+        label: Publicar anuncio
+      composer:
+        in_editor: Se agregan en el editor de abajo.
+        optional: opcional
+        details_needed: Obligatorio para %{options}
+        missing_details: "%{option} en %{field} necesita detalles: escribilos en el cuadro bajo las opciones."
+        other_details: Otros detalles
+        missing: Falta completar %{fields} antes de publicar.
     reqpm:
       title: REQ-PM
       button:
@@ -325,7 +335,7 @@ es:
     nautas:
       category_checklist:
         title: Lista antes de publicar
-        items_placeholder: "Un punto por línea. Enlace opcional: Punto | https://…"
+        items_placeholder: 'Un punto por línea. Enlace opcional: Punto | https://…'
         button_label: Texto del botón de aceptar
         reask: Volver a pedirla a todo el mundo
         save: Guardar lista
@@ -579,6 +589,7 @@ es:
           popups: Avisos emergentes
           disteleplus: Disteleplus
           reqpm: REQ-PM
+          listing_format: Formato de anuncios
           all_settings: Todos los ajustes
   admin_js:
     admin:
@@ -632,6 +643,7 @@ es:
           jtech_mod_topic_tools: 'Power Tools Nautas — Moderación: Historias'
           jtech_mod_checklists: 'Power Tools Nautas — Moderación: Listas'
           jtech_reqpm: Power Tools Nautas — REQ-PM
+          jtech_listing_format: Power Tools Nautas — Formato de anuncios
         reqpm:
           setup_prompt:
             'off': 'Desactivado: no pedir nunca'

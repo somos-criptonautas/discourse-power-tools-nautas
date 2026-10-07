@@ -1,0 +1,10 @@
+# Build output of dumbcourse/build.ts, committed because the plugin serves it
+# as is. Marked generated so GitHub leaves it out of the language stats and
+# folds it in diffs; the sources are under dumbcourse/.
+public/dumbcourse.js linguist-generated
+public/dumbcourse-early.js linguist-generated
+public/dumbcourse.css linguist-generated
+public/index.html linguist-generated
+
+# Built by scripts/theme/icons.mts from lucide-static (pnpm theme:icons).
+themes/jtech/assets/icons-sprite.svg linguist-generated

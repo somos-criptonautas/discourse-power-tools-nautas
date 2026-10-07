@@ -8,7 +8,11 @@ import { invalidate, peek, store } from "../cache.ts";
 import { closest, removeNode } from "../compat.ts";
 import { settings } from "../config.ts";
 import { emojify } from "../content/emoji.ts";
-import { cookedToText, type PostLink } from "../content/cooked.ts";
+import {
+  cookedToText,
+  type Picture,
+  type PostLink,
+} from "../content/cooked.ts";
 import {
   $,
   $$,
@@ -29,6 +33,8 @@ import type { Screen } from "../screen.ts";
 import { isStaff, user } from "../session.ts";
 import { category, categoryBadge, topicPath, userPath } from "../site.ts";
 import type { Post, Topic } from "../types.ts";
+import { hiddenParts, hiddenState, showHidden } from "../ui/hidden-text.ts";
+import { showPictures, viewPicture } from "../ui/pictures.ts";
 import { icon } from "../ui/icons.ts";
 import {
   actionSheet,
@@ -56,6 +62,7 @@ interface State {
   posts: Record<number, Post>; // by post id
   links: Record<number, PostLink[]>;
   images: Record<number, number>;
+  pictures: Record<number, Picture[]>;
   stream: number[];
   loadedFrom: number; // index into stream
   loadedTo: number; // exclusive
@@ -134,6 +141,7 @@ function paintTopic(
     posts: {},
     links: {},
     images: {},
+    pictures: {},
     stream: t.post_stream.stream || [],
     loadedFrom: 0,
     loadedTo: 0,
@@ -277,6 +285,7 @@ function appendPosts(
     const r = renderPost(p, { categoryId: t.category_id, topicSlug: t.slug });
     state.links[p.id] = r.links;
     state.images[p.id] = r.images;
+    state.pictures[p.id] = r.pictures;
     parts.push(r.html);
   }
   if (!parts.length) return;
@@ -293,6 +302,7 @@ function replacePost(state: State, p: Post): void {
   });
   state.links[p.id] = r.links;
   state.images[p.id] = r.images;
+  state.pictures[p.id] = r.pictures;
   const fresh = fromHtml(r.html);
   if (!old || !old.parentNode || !fresh) return;
   const hadFocus = old.contains(document.activeElement);
@@ -797,6 +807,26 @@ function wireTopic(
       });
 
     const links = state.links[p.id] || [];
+    const postEl = byId("post-" + p.id);
+    const hidden = postEl ? hiddenParts(postEl) : null;
+    const hiddenNow = hidden ? hiddenState(hidden) : null;
+    if (hidden && hiddenNow)
+      items.push({
+        label: hiddenNow === "hidden" ? "Show hidden text" : "Hide hidden text",
+        icon: hiddenNow === "hidden" ? "eye" : "eyeOff",
+        run: () => showHidden(hidden, hiddenNow === "hidden"),
+      });
+    // First in the menu: it's what a post with pictures is opened for.
+    const pictures = state.pictures[p.id] || [];
+    if (pictures.length)
+      items.unshift({
+        label:
+          pictures.length === 1
+            ? "View picture"
+            : `View pictures (${pictures.length})`,
+        icon: "image",
+        run: () => showPictures(pictures),
+      });
     if (state.images[p.id] && prefs.images !== "show") {
       items.push({
         label: plural(state.images[p.id], "Show image", "Show images"),
@@ -906,6 +936,19 @@ function wireTopic(
 
   // Tap-to-load images.
   s.act("load-image", (el) => loadImage(el));
+
+  // Tapping a picture in a post opens the viewer on it, not the bare file.
+  // A picture this view can't place (a small action's) opens as before.
+  s.act("view-picture", (el) => {
+    const p = postFrom(el);
+    const list = (p && state.pictures[p.id]) || [];
+    const i = parseInt(el.getAttribute("data-pic") || "", 10);
+    if (list[i]) viewPicture(list, i);
+    else {
+      const href = el.getAttribute("href");
+      if (href) window.open(href, "_blank", "noopener");
+    }
+  });
   s.act("spoiler", (el) => el.classList.toggle("revealed"));
 
   // ── Topic menu ──────────────────────────────────────────────────────
@@ -1295,6 +1338,12 @@ function loadImage(el: HTMLElement): void {
   if (w) img.setAttribute("width", w);
   if (h) img.setAttribute("height", h);
   img.className = "loaded-image";
+  // A post's picture: tapping it once it's shown opens the viewer on it.
+  const pic = el.getAttribute("data-pic");
+  if (pic) {
+    img.setAttribute("data-act", "view-picture");
+    img.setAttribute("data-pic", pic);
+  }
   if (el.parentNode) el.parentNode.replaceChild(img, el);
   else removeNode(el);
 }

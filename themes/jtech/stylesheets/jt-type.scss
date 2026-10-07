@@ -1,0 +1,227 @@
+// Typography. Geist throughout, with JTech Market's leading and tracking
+// (1.55, -0.006em). The root is core's own text-size scale (16px at
+// "normal"): the forum used to run a 15px root like the marketplace, and
+// people found everything a size too small. Sizes are rem so they follow the
+// user's text-size preference.
+:root {
+  // Named steps at the 16px root
+  --jt-text-2xs: 0.7333rem; // 11.7
+  --jt-text-xs: 0.8rem; // 12.8
+  --jt-text-sm: 0.8667rem; // 13.9
+  --jt-text-md: 0.9333rem; // 14.9
+  --jt-text-body: 1rem; // 16
+  --jt-text-reading: 1.0667rem; // 17 — long-form post body
+  --jt-text-lg: 1.2rem; // 19.2
+  --jt-text-xl: 1.3333rem; // 21.3
+  --jt-text-2xl: 1.6rem; // 25.6
+  --jt-text-3xl: 2rem; // 32
+  --jt-text-4xl: 2.4rem; // 38.4
+
+  // Tracking tightens as size grows (Geist is drawn for this)
+  --jt-tracking-body: -0.006em;
+  --jt-tracking-ui: -0.011em;
+  --jt-tracking-heading: -0.02em;
+  --jt-tracking-display: -0.032em;
+  --line-height-large: 1.55;
+  --cooked-line-height: 1.7;
+}
+
+body {
+  letter-spacing: var(--jt-tracking-body);
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--heading-font-family);
+  letter-spacing: var(--jt-tracking-heading);
+}
+
+h1 {
+  font-weight: 700;
+  letter-spacing: var(--jt-tracking-display);
+}
+
+// Numbers that sit in columns or tick over
+.topic-list .num,
+.topic-list .activity,
+.topic-list .posts-map,
+.topic-map,
+.badge-notification,
+.relative-date,
+.post-date,
+.timeline-container,
+.sidebar-section-link-content-badge,
+.user-stat .value,
+.admin-report,
+table {
+  font-variant-numeric: tabular-nums;
+}
+
+// ── UI chrome ─────────────────────────────────────────────
+.nav-pills > li > a {
+  font-size: var(--jt-text-md);
+  letter-spacing: var(--jt-tracking-ui);
+}
+
+// :where keeps this at zero specificity, so .btn-large / .btn-small and
+// buttons that size themselves (login, chat, composer) still win.
+:where(.btn) {
+  font-size: var(--jt-text-md);
+  letter-spacing: var(--jt-tracking-ui);
+}
+
+.btn-small,
+.btn.btn-small {
+  font-size: var(--jt-text-xs);
+}
+
+// ── Topic list ────────────────────────────────────────────
+.topic-list {
+  th,
+  .topic-list-header th {
+    font-size: var(--jt-text-xs);
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+
+  .main-link a.title {
+    font-size: var(--jt-text-reading);
+    font-weight: 500;
+    letter-spacing: var(--jt-tracking-ui);
+    line-height: 1.35;
+  }
+
+  .link-bottom-line,
+  .badge-category__name,
+  .discourse-tag {
+    font-size: var(--jt-text-xs);
+  }
+
+  .topic-excerpt {
+    font-size: var(--jt-text-md);
+    line-height: 1.55;
+    color: var(--jt-text-muted);
+  }
+
+  td.num,
+  td.activity,
+  .num a,
+  .activity a {
+    font-size: var(--jt-text-sm);
+  }
+}
+
+// ── Topic page ────────────────────────────────────────────
+#topic-title h1,
+#topic-title .fancy-title {
+  font-size: var(--jt-text-3xl);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: var(--jt-tracking-display);
+}
+
+.topic-meta-data {
+  font-size: var(--jt-text-md);
+
+  .names {
+    .first,
+    .first a {
+      font-weight: 600;
+    }
+
+    .second,
+    .user-title {
+      color: var(--jt-text-muted);
+      font-weight: 400;
+    }
+  }
+
+  .post-info,
+  .post-info a,
+  .relative-date {
+    font-size: var(--jt-text-sm);
+    color: var(--jt-text-subtle);
+  }
+}
+
+.topic-map {
+  .number {
+    font-size: var(--jt-text-lg);
+    font-weight: 600;
+    letter-spacing: var(--jt-tracking-heading);
+  }
+
+  .topic-map__stat-label,
+  h4,
+  span:not(.number) {
+    font-size: var(--jt-text-xs);
+  }
+}
+
+// ── Post body ─────────────────────────────────────────────
+.cooked,
+.d-editor-preview {
+  font-size: var(--jt-text-reading);
+  line-height: var(--cooked-line-height);
+
+  h1 {
+    font-size: var(--jt-text-2xl);
+    letter-spacing: var(--jt-tracking-display);
+  }
+
+  h2 {
+    font-size: var(--jt-text-xl);
+    font-weight: 600;
+  }
+
+  h3 {
+    font-size: var(--jt-text-lg);
+    font-weight: 600;
+  }
+
+  h4,
+  h5,
+  h6 {
+    font-size: var(--jt-text-body);
+    font-weight: 600;
+  }
+
+  pre code {
+    font-size: var(--jt-text-sm);
+    line-height: 1.6;
+  }
+
+  :not(pre) > code {
+    font-size: 0.875em;
+  }
+}
+
+// ── Mixed text direction ──────────────────────────────────
+// With core's "support mixed text direction" on (api-initializers/
+// jt-text-direction marks the page), a title, excerpt or post reads in its
+// own direction. The theme cuts excerpts and descriptions short after a few
+// lines, and the "…" goes at the end of the block's direction: in a Hebrew
+// interface an English excerpt showed its "…" before the text, at the start
+// of its last line ("…first time. Test message two for the inbox", cut after
+// "inbox"), and a Hebrew one did the same in English. Each takes its
+// direction from its own text instead, so the "…" is where it stops, and it
+// lines up as its post does (core aligns an English post left in a Hebrew
+// interface). Aligned to its start: with left or right (core's bookmark list
+// sets one) Chrome leaves the "…" out.
+html.jt-mixed-direction
+  :is(
+    .jt-card .topic-excerpt,
+    .bookmark-list .post-excerpt,
+    .user-stream .post-list-item .excerpt .cooked,
+    .group-box .group-description,
+    .badge-card .badge-summary,
+    .jt-banner__desc
+  ) {
+  unicode-bidi: plaintext;
+  text-align: start;
+}

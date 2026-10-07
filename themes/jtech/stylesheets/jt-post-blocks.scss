@@ -1,0 +1,205 @@
+// Blocks inside a post: collapsible sections ([details]), quotes and link
+// previews (oneboxes). Core draws each its own way: a grey bar with a ► / ▼
+// for details, a grey title bar over a barred blockquote for quotes, and a
+// 1px + 4px ring for oneboxes, which with the theme's hairline made three
+// rings. Here all three are the same hairline card, so a post reads as one
+// set of blocks.
+$jt-chevron: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E";
+$jt-block-pad: 0.9rem;
+
+// ── Collapsible sections ─────────────────────────────────
+// Quick look's post is outside .topic-body, where core's own rule stops. The
+// composer's rich editor (.ProseMirror) gets the same, so a section looks in
+// the editor as it will in the post.
+// .elided is core's "…" toggle for trimmed email replies: left as core has it.
+.topic-body .cooked details:not(.elided),
+.jt-quick-look__cooked details:not(.elided),
+.d-editor-preview details:not(.elided),
+.ProseMirror details:not(.elided) {
+  margin-bottom: 0.75rem;
+  padding: 0 $jt-block-pad;
+  background: transparent;
+  border: 1px solid var(--jt-border);
+  border-radius: var(--jt-radius-md);
+
+  &:not([open]):hover,
+  &:not([open]):focus,
+  &:not([open]):focus-within {
+    background: transparent;
+  }
+
+  > summary {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0 (-$jt-block-pad);
+    padding: 0.6rem $jt-block-pad;
+    font-weight: 500;
+    color: var(--jt-text);
+    border-radius: calc(var(--jt-radius-md) - 1px);
+    transition: background-color var(--jt-motion);
+
+    &::before {
+      content: "";
+      flex: none;
+      width: 1em;
+      height: 1lh; // the chevron sits on a long summary's first line
+      margin: 0;
+      background-color: var(--jt-text-muted);
+
+      // a fixed size: in the rich editor core pads this caret (it is the
+      // click target there), and contain would scale the chevron with it
+      mask: url($jt-chevron) center / 1em no-repeat;
+      transition: rotate var(--jt-motion);
+    }
+
+    // A right-to-left section (Hebrew, in either interface) points its
+    // chevron the other way, towards its text
+    &:dir(rtl)::before {
+      scale: -1 1;
+    }
+
+    &:hover {
+      background: var(--jt-hover);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--jt-focus);
+      outline-offset: -2px;
+    }
+
+    > p {
+      padding-block: 0;
+    }
+  }
+
+  &[open] {
+    padding-bottom: 0.25rem;
+
+    > summary {
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid var(--jt-border);
+      border-radius: calc(var(--jt-radius-md) - 1px)
+        calc(var(--jt-radius-md) - 1px) 0 0;
+
+      // Down. The rotate property, not transform: core's right-to-left
+      // stylesheet negated rotate(90deg), so in a Hebrew interface an open
+      // section's chevron pointed up. A mirrored chevron turns the other way.
+      &::before {
+        rotate: 90deg;
+      }
+
+      &:dir(rtl)::before {
+        rotate: -90deg;
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    > summary,
+    > summary::before {
+      transition: none;
+    }
+  }
+}
+
+// Scoped to posts and the composer's preview, to outrank the theme's own
+// barred blockquote and core's title bar.
+.cooked,
+.d-editor-preview,
+.ProseMirror {
+  // ── Quotes ───────────────────────────────────────────────
+  // One sunken card: who's quoted on top, the text under it, no bar beside it
+  // (the card already sets it apart).
+  aside.quote {
+    background: var(--jt-surface-sunken);
+    border: 1px solid var(--jt-border);
+    border-radius: var(--jt-radius-md);
+    overflow: hidden;
+
+    .title {
+      padding: 0.7rem $jt-block-pad 0;
+      color: var(--jt-text-muted);
+      background: transparent;
+      border-left: none;
+    }
+
+    // Expand, and jump to the quoted post: core's pale grey was 1.5:1 on the
+    // card, and the jump arrow (a link) came out smaller than the chevron (a
+    // button, which core sizes 1rem)
+    .quote-controls {
+      gap: 0.3em;
+
+      .btn {
+        margin: 0;
+        font-size: var(--font-0);
+      }
+
+      .d-icon {
+        color: var(--jt-text-subtle);
+      }
+
+      .btn:hover .d-icon {
+        color: var(--jt-text);
+      }
+    }
+
+    blockquote {
+      margin: 0;
+      padding: 0.5rem $jt-block-pad 0.75rem;
+      background: transparent;
+      border-left: none;
+    }
+  }
+
+  // ── Link previews ────────────────────────────────────────
+  aside.onebox {
+    margin-inline: 0;
+    background: var(--jt-surface-raised);
+    border: 1px solid var(--jt-border);
+    border-radius: var(--jt-radius-md);
+    box-shadow: none;
+    transition: border-color var(--jt-motion);
+
+    &:hover {
+      border-color: var(--jt-border-strong);
+    }
+
+    // the site's name: quiet, like the date over a search result
+    header.source {
+      font-size: var(--jt-text-sm);
+
+      a[href] {
+        color: var(--jt-text-muted);
+        text-decoration: none;
+      }
+    }
+
+    .onebox-body {
+      h3 a[href],
+      h4 a[href] {
+        color: var(--jt-text);
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+          text-underline-offset: 3px;
+        }
+      }
+    }
+  }
+}
+
+// ── In the rich editor ───────────────────────────────────
+// The summary there is text being typed: no hover tint on it (core keeps the
+// hover on the chevron alone, which is also what opens and closes it).
+.ProseMirror details:not(.elided) > summary:hover {
+  background: transparent;
+}
+
+// A plain blockquote, as jt-posts draws it in a post: a bar, no grey box
+.ProseMirror blockquote {
+  background: transparent;
+  border-left: 0;
+  border-inline-start: 2px solid var(--jt-border-strong);
+}

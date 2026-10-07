@@ -4,6 +4,7 @@
 // and every link is collected so the post's action sheet can list them —
 // much easier with a D-pad than tabbing through a paragraph.
 
+import { closest } from "../compat.ts";
 import { APP_ROOT, settings } from "../config.ts";
 import { raw, type SafeHtml } from "../html.ts";
 import { prefs } from "../prefs.ts";
@@ -15,10 +16,54 @@ export interface PostLink {
   internal: boolean;
 }
 
+// A picture in a post, for the picture viewer (a post is one D-pad stop, so
+// its pictures open from the post's menu).
+export interface Picture {
+  // As the post shows it (often resized): used for gallery thumbnails.
+  src: string;
+  // The full-size original.
+  full: string;
+  // Downloads it, or "" for pictures from other sites.
+  save: string;
+  // Its own name, or "" when it has none worth showing.
+  name: string;
+}
+
 export interface Processed {
   html: SafeHtml;
   links: PostLink[];
   images: number;
+  pictures: Picture[];
+}
+
+// A forum upload's download link. Discourse sends the file as a download
+// with ?dl=1. Only the path is kept: Discourse writes its links with its own
+// hostname, and the forum may be open under another one, where the reader's
+// session (needed to download) lives. Pictures from other sites have none.
+export function pictureSaveUrl(
+  downloadHref: string,
+  base62: string,
+  full: string
+): string {
+  let path = "";
+  const m = /^(?:https?:)?\/\/[^/]+(\/.*)$/.exec(downloadHref);
+  if (m) path = m[1];
+  else if (downloadHref.charAt(0) === "/") path = downloadHref;
+  if (path && path.indexOf(settings.subfolder + "/uploads/") !== 0) path = "";
+  if (!path && base62) {
+    const ext = /\.([a-z0-9]+)(?:[?#]|$)/i.exec(full);
+    if (ext)
+      path = settings.subfolder + "/uploads/short-url/" + base62 + "." + ext[1];
+  }
+  if (!path) return "";
+  return path + (path.indexOf("?") >= 0 ? "&" : "?") + "dl=1";
+}
+
+// Pasted pictures are all called "image", and phone photos are named with
+// digits: neither is worth showing.
+function pictureName(alt: string): string {
+  const name = alt.replace(/^\s+|\s+$/g, "");
+  return /[a-z]/i.test(name) && !/^image$/i.test(name) ? name.slice(0, 80) : "";
 }
 
 let inert: Document | null = null;
@@ -125,6 +170,7 @@ export function processCooked(cooked: string | null | undefined): Processed {
   const box = scratch();
   box.innerHTML = cooked || "";
   const links: PostLink[] = [];
+  const pictures: Picture[] = [];
   let images = 0;
 
   // Embeds that cannot play on a flip phone become plain links.
@@ -169,6 +215,35 @@ export function processCooked(cooked: string | null | undefined): Processed {
     images++;
     img.setAttribute("loading", "lazy");
     img.setAttribute("src", absolute(src));
+    // The post's own pictures, for the viewer: the full-size original is
+    // the lightbox link around a resized picture. Link previews' thumbnails
+    // aren't the post's pictures. Tapping one opens the viewer on it (the
+    // topic view's "view-picture" action; elsewhere the link works as before).
+    let picture = "";
+    if (!closest(img, ".onebox")) {
+      const parent = img.parentNode as Element | null;
+      const lightbox =
+        parent &&
+        parent.getAttribute &&
+        /\blightbox\b/.test(parent.getAttribute("class") || "")
+          ? parent
+          : null;
+      const full = absolute((lightbox && lightbox.getAttribute("href")) || src);
+      picture = String(pictures.length);
+      const tapped = lightbox || img;
+      tapped.setAttribute("data-act", "view-picture");
+      tapped.setAttribute("data-pic", picture);
+      pictures.push({
+        src: absolute(src),
+        full,
+        save: pictureSaveUrl(
+          (lightbox && lightbox.getAttribute("data-download-href")) || "",
+          img.getAttribute("data-base62-sha1") || "",
+          full
+        ),
+        name: pictureName(img.getAttribute("alt") || ""),
+      });
+    }
     if (prefs.images === "show") continue;
     const w = img.getAttribute("width");
     const h = img.getAttribute("height");
@@ -178,6 +253,7 @@ export function processCooked(cooked: string | null | undefined): Processed {
     btn.setAttribute("class", "img-placeholder");
     btn.setAttribute("data-act", "load-image");
     btn.setAttribute("data-src", absolute(src));
+    if (picture) btn.setAttribute("data-pic", picture);
     if (w) btn.setAttribute("data-w", w);
     if (h) btn.setAttribute("data-h", h);
     btn.textContent =
@@ -275,7 +351,7 @@ export function processCooked(cooked: string | null | undefined): Processed {
     if (poll.parentNode) poll.parentNode.replaceChild(holder, poll);
   }
 
-  return { html: raw(box.innerHTML), links, images };
+  return { html: raw(box.innerHTML), links, images, pictures };
 }
 
 // Plain text of a post for quoting when the raw source is unavailable.

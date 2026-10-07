@@ -1,0 +1,382 @@
+@use "lib/viewport";
+
+// Pieces that used to be separate theme components on the forum.
+
+// ── Category boxes (core's "Boxes" category page style) ───
+// Hairline cards like the topic cards; the category colour stays a thin
+// accent on the left only when categories aren't monochrome.
+.category-boxes,
+.category-boxes-with-topics {
+  --d-category-border-box-width: 1px;
+  --d-category-border-accent-width: #{if(
+      $monochrome_categories == "true",
+      1px,
+      3px
+    )};
+
+  .category-box {
+    border-radius: var(--jt-radius-lg);
+    transition: border-color var(--jt-motion);
+
+    .category-box-inner {
+      background: var(--jt-surface-raised);
+      border-color: var(--jt-border);
+      border-radius: 0 var(--jt-radius-lg) var(--jt-radius-lg) 0;
+    }
+
+    &:hover .category-box-inner {
+      border-color: var(--jt-border-strong);
+    }
+
+    h3 {
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .description {
+      color: var(--jt-text-muted);
+    }
+  }
+}
+
+// ── First-reply prompt (components/jt-first-reply) ────────
+.jt-first-reply {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  max-width: calc(
+    var(--topic-avatar-width) + var(--topic-body-width) +
+      (var(--topic-body-width-padding) * 2)
+  );
+  margin: var(--space-4) 0;
+  padding: var(--space-4) var(--space-5);
+  color: var(--jt-text-muted);
+  background: var(--jt-surface-sunken);
+  border: 1px dashed var(--jt-border-strong);
+  border-radius: var(--jt-radius-lg);
+
+  &__icon .d-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--jt-text-subtle);
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: var(--jt-text-md);
+
+    strong {
+      font-weight: 600;
+      color: var(--jt-text);
+    }
+  }
+}
+
+// ── First / last post buttons (components/jt-jump-buttons) ─
+.jt-jump {
+  display: flex;
+  gap: var(--space-2);
+
+  // Under the timeline they join core's reply and notification buttons, with
+  // core's own button size and look
+  &.--timeline {
+    display: contents;
+  }
+
+  &.--progress {
+    height: 100%;
+
+    .btn {
+      height: 100%;
+      min-height: 0;
+      padding: 0.4em 0.6em;
+      color: var(--jt-text-muted);
+      background: var(--jt-surface-raised);
+      border: 1px solid var(--jt-border);
+
+      &:hover,
+      &:focus-visible {
+        color: var(--jt-text);
+        border-color: var(--jt-border-strong);
+      }
+    }
+  }
+}
+
+// A 2×2 block under the timeline: reply and notifications on top, first and
+// last post under them. The arrows keep the second row even when a button
+// above is missing (visitors, closed topics). Core's own selector, so this
+// outranks its flex row.
+.timeline-container .topic-timeline .timeline-footer-controls:has(.jt-jump) {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+
+  // equal rows, so the arrows get the same height as reply and notifications
+  grid-auto-rows: 1fr;
+  gap: var(--space-2);
+
+  .jt-jump__top {
+    grid-area: 2 / 1;
+  }
+
+  .jt-jump__bottom {
+    grid-area: 2 / 2;
+  }
+}
+
+// On a phone the timeline opens as a sheet and core's own, more specific rule
+// makes this block a wrapping row of Jump to… and the arrows (reply and
+// notifications aren't there). Loose in that row, the arrows parted on a
+// narrow phone (320px): ↓ wrapped alone under ↑. They wrap as a pair.
+.timeline-container.timeline-fullscreen .jt-jump.--timeline {
+  display: flex;
+}
+
+#topic-progress-wrapper .before-topic-progress-outlet {
+  display: flex;
+}
+
+// ── Code line numbers (api-initializers/jt-code-blocks) ───
+// The gutter and the code share one grid row, so the numbers stay put while a
+// long line scrolls sideways. The gutter's sides are logical, taken from the
+// way the block runs: with mixed text direction on (as on jtechforums.org)
+// core runs a code block left to right in a Hebrew interface too, but its
+// right-to-left stylesheet flips every physical left and right, so the line
+// between the numbers and the code moved onto the block's outer edge and the
+// numbers lost their right alignment.
+.cooked pre.jt-numbered,
+.d-editor-preview pre.jt-numbered {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+
+  > .jt-lines {
+    padding-block: 12px;
+    padding-inline: 0.85em 0.6em;
+    font-family: var(--jt-font-mono);
+    font-size: var(--font-down-1);
+    line-height: inherit;
+    color: var(--jt-text-subtle);
+    text-align: end;
+    white-space: pre;
+    user-select: none;
+    border-inline-end: 1px solid var(--jt-border);
+  }
+
+  > code {
+    overflow-x: auto;
+  }
+}
+
+// On phones core keeps 2.75em clear on the right of a block with a copy
+// button (always shown there), so the code doesn't start under it. In Hebrew
+// core's right-to-left stylesheet moved that room to the left, though a
+// left-to-right block keeps its button on the right: the code was pushed 26px
+// in from the left and still ran under the button. Logical sides, from the
+// way the block runs.
+@media (width < 40rem) {
+  .cooked pre.codeblock-buttons > code {
+    padding-inline: 12px 2.75em;
+  }
+}
+
+// ── Padlocks on private categories (setting hide_lock_icons) ─
+@if $hide_lock_icons == "true" {
+  .badge-category__wrapper,
+  .category-drop .restricted,
+  .search-menu .results .restricted,
+  .category-title-name,
+  .category-box-heading,
+  .sidebar-section-link,
+  [href^="/c/"] {
+    .d-icon-lock,
+    [class*="d-icon-category.restricted"] {
+      display: none;
+    }
+  }
+}
+
+// ── Composer full-screen toggle on tablets ────────────────
+// Core hides it on every touch device; tablets have the room for it.
+@media (hover: none) and (width >= 40rem) {
+  #reply-control .toggle-fullscreen {
+    display: flex;
+  }
+}
+
+// ── Replying to a closed or archived topic (closed_reply_warning) ─
+// The note on its own line, its buttons (reopen, unarchive) in a row under it.
+.jt-closed-reply {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+
+  p {
+    flex-basis: 100%;
+    margin: 0;
+  }
+}
+
+// ── Print (print_button_categories) ───────────────────────
+// lib/jt-print's frame, out of sight at a page's width (a frame with no size
+// lays the post out at no width until it prints).
+.jt-print-frame {
+  position: fixed;
+  top: 0;
+  left: -300mm;
+  width: 210mm;
+  height: 297mm;
+  border: 0;
+}
+
+// The page in it: the first post in a reading column, title and byline over
+// it, the topic's address under it.
+.jt-print {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+
+  &__title {
+    margin: 0 0 0.35em;
+    font-size: var(--font-up-4);
+    line-height: 1.2;
+  }
+
+  &__meta,
+  &__source {
+    color: var(--jt-text-subtle);
+    font-size: var(--font-down-1);
+  }
+
+  &__source {
+    margin-top: 2em;
+    padding-top: 1em;
+    border-top: 1px solid var(--jt-border);
+    overflow-wrap: anywhere;
+  }
+
+  // the image's file name and size bar
+  .lightbox-wrapper .meta {
+    display: none;
+  }
+
+  @media print {
+    max-width: none;
+    padding: 0;
+  }
+}
+
+// ── Voice message (voice_recorder) ────────────────────────
+// The recorder's dialog: a clock (a red dot while recording) or the
+// recording to listen back to.
+.jt-voice {
+  &__meter {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.5em;
+    margin: var(--space-4) 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__clock {
+    font-size: var(--font-up-4);
+    font-weight: 600;
+  }
+
+  &__limit {
+    color: var(--jt-text-subtle);
+  }
+
+  &__dot {
+    width: 0.6em;
+    height: 0.6em;
+    border-radius: 50%;
+    background: var(--jt-border-strong);
+    align-self: center;
+  }
+
+  &__meter.--recording &__dot {
+    background: var(--danger);
+    animation: jt-voice-pulse 1.2s ease-in-out infinite;
+  }
+
+  &__preview {
+    display: block;
+    width: 100%;
+    margin: var(--space-2) 0;
+  }
+
+  &__error {
+    color: var(--danger);
+  }
+}
+
+@keyframes jt-voice-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jt-voice__meter.--recording .jt-voice__dot {
+    animation: none;
+  }
+}
+
+// ── Badges after a poster's name (post_badges) ────────────
+.jt-post-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: 6px;
+  vertical-align: middle;
+}
+
+.jt-post-badge {
+  display: inline-flex;
+  color: var(--jt-text-subtle);
+
+  &:hover {
+    color: var(--primary);
+  }
+
+  img,
+  .d-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  img {
+    object-fit: contain;
+    border-radius: 3px;
+  }
+}
+
+// ── QR code in the share options (qr_code_share) ──────────
+// Black on white in both modes (scanners expect it), on a white tile.
+.jt-qr {
+  &__code {
+    width: min(18rem, 100%);
+    margin: 0 auto;
+    padding: 8px;
+    border-radius: var(--jt-radius, 12px);
+    background: #fff;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  &__url {
+    margin: var(--space-3) 0 0;
+    color: var(--jt-text-subtle);
+    font-size: var(--font-down-1);
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+}

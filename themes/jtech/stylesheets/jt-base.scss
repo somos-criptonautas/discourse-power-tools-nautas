@@ -1,0 +1,237 @@
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizelegibility;
+  font-feature-settings: "liga", "calt";
+}
+
+body {
+  background: var(--jt-surface);
+}
+
+// Native controls in monochrome: checkboxes, radios and range thumbs take
+// the text colour.
+html {
+  accent-color: var(--jt-text);
+}
+
+// ── Scrollbars ────────────────────────────────────────────
+// Panels (sidebar, menus, dialogs, code, composer): thin, and invisible
+// until the panel is hovered. Set on every element, not inherited, so it
+// also wins over core's per-component scrollbar colours.
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+*:hover {
+  scrollbar-color: var(--jt-scroll-thumb) transparent;
+}
+
+// Touch screens have no hover to reveal them, and code blocks, tables and the
+// command menu would scroll with no sign that they can.
+@media (hover: none) {
+  * {
+    scrollbar-color: var(--jt-scroll-thumb) transparent;
+  }
+}
+
+// The page itself: components/jt-scrollbar draws an overlay pill instead and
+// adds this class while it is mounted (without it the native bar stays).
+html.jt-overlay-scroll {
+  scrollbar-width: none;
+}
+
+.jt-scrollbar {
+  position: fixed;
+  z-index: z("timeline") + 1;
+  top: calc(var(--header-offset, 4rem) + 4px);
+  right: 0;
+  bottom: calc(var(--composer-height, 0px) + 4px);
+  width: 14px;
+  touch-action: none;
+  user-select: none;
+
+  &.--off {
+    display: none;
+  }
+
+  &__thumb {
+    position: absolute;
+    top: 0;
+    right: 3px;
+    width: 6px;
+    background: var(--jt-scroll-thumb);
+    border-radius: 999px;
+    opacity: 0;
+    will-change: transform;
+    transition:
+      opacity 0.35s ease,
+      width 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  &.--active &__thumb {
+    opacity: 1;
+    transition-duration: 0.1s, 0.15s, 0.15s;
+  }
+
+  &:hover &__thumb,
+  &.--dragging &__thumb {
+    width: 9px;
+    opacity: 1;
+    background: var(--jt-scroll-thumb-active);
+  }
+}
+
+h1,
+h2,
+h3,
+h4 {
+  letter-spacing: -0.02em;
+}
+
+// Keyboard focus ring for controls. Text entry gets none: its own border
+// already shows focus, and a 2px white box around the composer reads as a bug.
+:focus-visible {
+  outline: 2px solid var(--jt-focus);
+  outline-offset: 2px;
+}
+
+:is(
+  input:not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="button"],
+    [type="submit"]
+  ),
+  textarea,
+  select,
+  [contenteditable],
+  .d-editor-input
+):focus-visible {
+  outline: none;
+}
+
+// "Skip to main content" (the first Tab on any page) and a profile's "Skip
+// to profile content": core's square chip jammed against the window's top
+// edge, over the logo. The theme's control radius, and a gap above it.
+:is(a#skip-link, a#user-nav-skip-link, .skip-link) {
+  border-radius: var(--jt-radius-control);
+  font-weight: 500;
+
+  &:focus {
+    top: var(--space-2);
+  }
+}
+
+// A dialog's body takes focus when the dialog opens (tabindex="-1", so the
+// arrow keys scroll it). After any keyboard use that drew the ring around the
+// dialog's whole content, which read as a stray frame; Tab moves on to the
+// controls inside, which keep theirs.
+.d-modal__body:focus-visible {
+  outline: none;
+}
+
+// Core turns the outline off on every kind of button (.btn, .btn-flat, the
+// primary and danger buttons, select boxes, the post menu's buttons) with
+// selectors up to five classes deep, and marks focus with the hover fill
+// instead: on the theme's quiet buttons that's a faint tint or nothing, so
+// keyboard focus vanished. The ring mustn't depend on out-ranking each of
+// those rules, hence !important.
+:is(
+  .btn,
+  .btn-flat,
+  .select-kit-header,
+  .composer-toggle-switch,
+  .discourse-reactions-counter
+):focus-visible {
+  outline: 2px solid var(--jt-focus) !important;
+  outline-offset: 2px;
+}
+
+// Inside a box that scrolls or clips (the post menu scrolls sideways, the
+// sidebar, the user menu's tabs, the composer's title row and toolbar) an
+// outer ring is cut off: draw it inside the button instead.
+:is(
+    nav.post-controls,
+    .sidebar-sections,
+    .user-menu .menu-tabs-container,
+    #reply-control .action-title,
+    .d-editor-button-bar
+  )
+  :is(
+    .btn,
+    .btn-flat,
+    .composer-toggle-switch,
+    .discourse-reactions-counter
+  ):focus-visible {
+  outline-offset: -2px;
+}
+
+// The composer's resize handle (Tab reaches it: arrow keys resize) sits on
+// the composer's top edge, which clips: of an outer ring only the bottom line
+// showed, a stray rule across the composer. Drawn inside it, the whole ring
+// shows.
+#reply-control .grippie:focus-visible {
+  outline-offset: -2px;
+}
+
+::selection {
+  background: var(--jt-text);
+  color: var(--jt-surface);
+}
+
+.btn {
+  font-weight: 500;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn-primary {
+  border: 1px solid var(--d-button-primary-bg-color);
+}
+
+// ── One right edge ────────────────────────────────────────
+// The header, the page content and the footer share one pair of walls
+// (core's .wrap). Core narrows a few blocks inside it on its own: the
+// suggested topics under a topic stop at 965px (the search page's 10% insets
+// are lifted in jt-search). They run wall to wall like the rest. Posts keep
+// their reading width; the timeline fills the rest.
+.more-topics__container {
+  max-width: none;
+}
+
+// ── Print ─────────────────────────────────────────────────
+// Page chrome stays off paper, the sidebar (the posts take its column) and
+// the "Skip to main content" link included, and dark mode prints dark text
+// on white (browsers drop the black background, which would leave white
+// text; the palette's colours switch in color_definitions).
+@media print {
+  .jt-progress,
+  .jt-scrollbar,
+  .jt-to-top,
+  .jt-footer,
+  .jt-hero,
+  .sidebar-wrapper,
+  .skip-links {
+    display: none !important;
+  }
+
+  // core's layout with the sidebar closed
+  body.has-sidebar-page #main-outlet-wrapper {
+    grid-template-columns: 0 minmax(0, 1fr);
+    gap: 0;
+  }
+
+  :root,
+  body {
+    --jt-text: #000;
+    --jt-text-muted: #444;
+    --jt-text-subtle: #555;
+    --jt-surface: #fff;
+    --jt-surface-raised: #fff;
+  }
+}

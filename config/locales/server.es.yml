@@ -57,6 +57,9 @@ es:
       disteleplus_telegram: 'Disteleplus no pudo entregar a Telegram (%{at}): <code>%{description}</code> — %{hint}'
   site_settings:
     jtech_enabled: Interruptor general de Power Tools Nautas. Cada función tiene además su propio interruptor en su pestaña.
+    jtech_row_click_theme_ids: IDs de temas donde las filas de la lista de historias se abren desde cualquier punto de la fila (no solo el título y los números) y rebotan al tocarlas. Core solo lo hace en celulares. Vacío (por defecto) lo desactiva.
+    jtech_theme_install: Instala y actualiza (en cada rebuild) el tema JTech que viene con el plugin. Nunca lo pone por defecto ni lo ofrece a la comunidad; eso se hace en Personalizar → Temas. Apagado, no instala ni actualiza; al encenderlo instala al momento y recupera un tema que un admin borró.
+    jtech_app_icon: Usa el logo de JTech sobre un cuadrado negro como ícono de la app instalada, en lugar del ícono del manifiesto. Apagado, usa el ícono subido. Hay que reinstalar la app para ver el cambio.
     discourse_no_likes_enabled: Activa los me gusta fantasma. Apagado, los me gusta y reacciones funcionan como en Discourse y nada de abajo tiene efecto.
     no_reactions_category_ids: Categorías donde los me gusta y reacciones son «fantasma». Sin categorías no pasa nada. Las subcategorías se agregan una a una.
     dislike_hide_like_button: Oculta los botones de me gusta y reacción en esas categorías y rechaza los que lleguen por la API. Los existentes se mantienen. Anula {{setting:dislike_allowed_like_groups}}.
@@ -219,6 +222,15 @@ es:
     reqpm_max_shares_per_day: Máximo de envíos de datos por persona en 24 horas. Vale también para el team.
     reqpm_request_cooldown_days: Días hasta poder pedirle de nuevo a la misma persona, sea cual sea la respuesta. 0 lo desactiva.
     reqpm_request_expiry_days: Días hasta que vence un pedido sin respuesta.
+    listing_format_enabled: Hace que las respuestas en las historias de abajo sigan un formato fijo, para historias de compraventa donde cada respuesta es un anuncio. Responder abre un formulario con un cuadro por campo. Una respuesta que no sigue el formato se rechaza antes de guardarse, con el motivo. Cada anuncio muestra el botón REQ-PM del vendedor en lugar de Responder, para quienes pueden usar REQ-PM. Las respuestas anteriores a sumar la historia nunca se ocultan ni se borran.
+    listing_format_topics: Historias donde aplica el formato. Va el número de la historia o su dirección. Las respuestas nuevas necesitan todos los campos; al editar respuestas viejas solo hay que mantener los campos que ya tenían, sin sumar enlaces externos.
+    listing_format_fields: Secciones que necesita cada anuncio. El formulario las publica en este orden, cada una como título con el detalle abajo («### ARTÍCULO» y luego el artículo). Las respuestas escritas a mano (ediciones, Dumbcourse) también pueden usar el nombre en negrita o «ARTÍCULO» seguido de dos puntos en una línea. Una sección vacía, o dentro de una cita, no cuenta.
+    listing_format_optional_fields: Secciones de la lista de arriba que pueden quedar vacías, como IMÁGENES en un anuncio sin fotos. El formulario las marca como opcionales y las omite si están vacías. Las demás tienen que tener contenido.
+    listing_format_single_choice: 'Secciones donde el formulario ofrece opciones para elegir una, escritas como "ESTADO: Nuevo, Como nuevo, Usado, Para repuestos". La sección mantiene un cuadro para otros detalles. Solo las usa el formulario; las respuestas no se validan contra las opciones.'
+    listing_format_multiple_choice: 'Secciones donde el formulario ofrece opciones para marcar varias, escritas como "RETIRO O ENVÍO: Retiro*, Envío". La sección mantiene un cuadro para otros detalles. Una opción terminada en * exige completar ese cuadro: con Retiro*, un anuncio que marca Retiro tiene que decir dónde. Eso se valida en todas las respuestas; lo demás no.'
+    listing_format_editor_field: La sección que se completa con el editor, donde se suben las imágenes; las demás tienen un cuadro cada una. Vacío, o con una sección que no está en la lista, da un cuadro a cada sección y pone el texto del editor después.
+    listing_format_block_links: Rechaza respuestas en estas historias con enlaces a otros sitios, escritos o como enlace. Se permiten correos, teléfonos y enlaces a este foro y sus archivos. Las direcciones en texto como ebay.com se detectan para terminaciones comunes (.com, .net, .org, .co, .il y otras).
+    listing_format_exempt_groups: Grupos que pueden responder en estas historias sin seguir el formato, para avisos y notas del team. Mantienen el botón Responder en los anuncios y usan el editor normal.
     placeholder:
       discourse_another_email_smtp_address: smtp.ejemplo.com
       discourse_another_email_smtp_username: usuario@ejemplo.com
@@ -264,8 +276,8 @@ es:
       busy: No se pudo crear un código. Probá de nuevo.
   nautas:
     category_checklist:
-      required: "Hay que aceptar la lista de «%{category}» antes de publicar ahí."
-      log_name: "Categoría: %{category}"
+      required: Hay que aceptar la lista de «%{category}» antes de publicar ahí.
+      log_name: 'Categoría: %{category}'
   discourse_mod_categories:
     whisper:
       first_post_not_allowed: Una historia nueva no puede empezar con una respuesta privada ni citarla.
@@ -277,6 +289,11 @@ es:
     post_rejected_notification_alert: "%{username} rechazó una respuesta en cola"
     user_note_notification_alert: "%{username} agregó una nota a %{target}"
     flag_note_notification_alert: "%{username} agregó una nota a un reporte sobre %{target}"
+  listing_format:
+    errors:
+      missing_fields: 'Esta historia es para anuncios y a tu respuesta le falta: %{fields}. Agregá cada uno como título con el detalle abajo, como "%{example}".'
+      missing_details: En %{field}, %{option} también necesita detalles (decí dónde), en la línea de abajo.
+      outside_links: No se permiten enlaces a otros sitios acá (%{links}). Quitalos y dejá un correo o teléfono.
   reqpm:
     notifications:
       request: pide tus datos de contacto

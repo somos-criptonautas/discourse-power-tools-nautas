@@ -163,6 +163,29 @@ RSpec.describe "First-post checklist" do
     shot("58_tl1_checklist_modal")
   end
 
+  # The items are staff-written, usually in English: in a Hebrew interface a
+  # sentence's full stop came first (".I read the community guidelines")
+  it "reads the checklist's items in their own direction in a Hebrew interface" do
+    SiteSetting.default_locale = "he"
+    set_checklist(version: 1, max_tl: 2)
+
+    sign_in(user)
+    visit(topic.url)
+    open_reply
+
+    expect(page).to have_css(
+      "html.rtl .mod-first-post-checklist-modal .mod-checklist-text",
+      wait: 10,
+    )
+    styles = page.evaluate_script(<<~JS)
+      [...document.querySelectorAll(".mod-checklist-text")].map((text) => {
+        const style = getComputedStyle(text);
+        return [style.unicodeBidi, style.textAlign];
+      })
+    JS
+    expect(styles.uniq).to eq([%w[plaintext right]])
+  end
+
   it "re-prompts a user after the checklist version is bumped" do
     # The user accepted version 1; staff then publish version 2.
     set_checklist(version: 1, max_tl: 2)
@@ -237,6 +260,68 @@ RSpec.describe "First-post checklist" do
     expect(page).to have_css(".mod-checklist-log-table", wait: 10)
     expect(page).to have_css(".mod-checklist-log-table tbody tr", count: 3)
     shot("61_checklist_acceptance_log")
+  end
+
+  # The log's five columns are wider than a narrow window's modal; the table
+  # scrolls in its own box instead of the whole modal scrolling sideways
+  it "scrolls the acceptance log in its own box when the window is narrow" do
+    set_checklist(version: 2, max_tl: 2)
+    PluginStore.set(
+      NS,
+      LOG_KEY,
+      [{ "user_id" => user.id, "version" => 2, "at" => 1.hour.ago.iso8601 }],
+    )
+
+    sign_in(moderator)
+    open_checklist_modal
+    expect(page).to have_css(".mod-checklist-log-scroll .mod-checklist-log-table", wait: 10)
+    resize_window(width: 400) do
+      body_width, body_scroll_width = page.evaluate_script(<<~JS)
+        (() => {
+          const body = document.querySelector(".mod-checklist-modal .d-modal__body");
+          return [body.clientWidth, body.scrollWidth];
+        })()
+      JS
+      expect(body_scroll_width).to be <= body_width
+    end
+  end
+
+  # On a 320px phone (a Qin F21) two fields shared a line at 128px each (the
+  # audience took three lines, the button's text was cut off), and the log's
+  # checklist filter, shown once the log has more than one checklist, ran
+  # past the dialog's edge
+  it "fits the checklist modal's fields and log filters on a 320px phone" do
+    set_checklist(version: 2, max_tl: 2)
+    PluginStore.set(
+      NS,
+      LOG_KEY,
+      [
+        { "user_id" => user.id, "version" => 2, "at" => 2.hours.ago.iso8601 },
+        { "user_id" => tl0_user.id, "version" => 1, "kind" => "topic", "at" => 1.hour.ago.iso8601 },
+      ],
+    )
+
+    sign_in(moderator)
+    open_checklist_modal
+    expect(page).to have_css(".mod-checklist-log-controls .mod-checklist-log-kind", wait: 10)
+    resize_window(width: 320) do
+      fields, filter_right, row_right = page.evaluate_script(<<~JS)
+        (() => {
+          const right = (selector) =>
+            Math.round(document.querySelector(selector).getBoundingClientRect().right);
+          return [
+            [...document.querySelectorAll(".mod-checklist-field-grid > .mod-checklist-field")].map(
+              (field) => Math.round(field.getBoundingClientRect().left)
+            ),
+            right(".mod-checklist-log-kind"),
+            right(".mod-checklist-log-controls"),
+          ];
+        })()
+      JS
+      expect(fields.size).to eq(2)
+      expect(fields.uniq.size).to eq(1) # one above the other
+      expect(filter_right).to be <= row_right
+    end
   end
 
   it "lets staff require a logged user to re-accept" do

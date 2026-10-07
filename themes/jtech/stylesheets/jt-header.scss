@@ -1,0 +1,374 @@
+@use "lib/viewport";
+
+// The glass sits on a pseudo-element. backdrop-filter on .d-header itself
+// would make the header the containing block for everything fixed inside it:
+// the phone menu's backdrop (.header-cloak) would only dim the header strip,
+// swipe-to-close would stop working and slide-in panels would be cut off.
+.d-header {
+  position: relative;
+  isolation: isolate;
+  background-color: transparent;
+  box-shadow: none;
+  border-bottom: 1px solid var(--jt-border);
+
+  // Core's modernised header is 3.25em (52px); people found that cramped.
+  // 40px controls with room above and below.
+  height: 3.5rem;
+
+  @include viewport.from(sm) {
+    height: 3.75rem;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+
+    @include jt-glass(var(--jt-header-blur-bg));
+  }
+}
+
+// Reading progress (components/jt-reading-progress): fixed just under the
+// header, scaled rather than resized so it never triggers layout.
+.jt-progress {
+  position: fixed;
+  top: var(--header-offset, 4rem);
+  left: 0;
+
+  // over the page, under menus, cards and dropdowns that open near the top
+  z-index: calc(z("timeline") + 1);
+  width: 100%;
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--jt-text-subtle) 25%,
+    var(--jt-text)
+  );
+  transform: scaleX(var(--jt-progress, 0));
+  transform-origin: 0 50%;
+  transition: transform 0.15s linear;
+}
+
+// Desktop with the sidebar docked (48rem+, core's own threshold): no ☰ —
+// the sidebar stays put and the logo sits at the left wall, on the same
+// line as the sidebar's search row. Narrower windows keep the ☰, which is
+// the only way to open the slide-out sidebar there.
+@media (width >= 48rem) {
+  html.desktop-view {
+    .d-header .header-sidebar-toggle {
+      display: none;
+    }
+
+    .d-header > .wrap {
+      padding-left: 0.5333rem;
+    }
+
+    // A header component reserves 3.7em left of the logo for the ☰
+    .d-header .home-logo-wrapper-outlet {
+      margin-left: 0;
+    }
+  }
+}
+
+// ── Right side: search field · new topic · avatar ─────────
+// One height (2.5rem, 40px) and one gap for everything. While the search field
+// shows, core's magnifier stays in the DOM, hidden, so its "/" shortcut still
+// has an anchor; core's colour selector gives way to the theme's switch
+// (header_color_toggle).
+html.jt-has-header-search .d-header-icons .search-dropdown,
+html.jt-has-color-toggle .d-header-icons .header-color-scheme-toggle {
+  display: none;
+}
+
+// Every icon in the row gets the same box, glyph size and colour: the
+// theme's own, core's (☰, search) and other plugins' and components' (chat),
+// which otherwise come in at core's larger font-up-4 size.
+.d-header .d-header-icons {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  > li {
+    margin: 0;
+  }
+
+  > li > .icon,
+  > li > .btn.no-text,
+  #toggle-current-user {
+    position: relative;
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border-radius: var(--jt-radius-control);
+
+    // one cell: core's ☰ carries an empty spacer span after its icon
+    > * {
+      grid-area: 1 / 1;
+    }
+  }
+
+  > li:not(.current-user) > .icon,
+  > li:not(.current-user) > .btn.no-text {
+    color: var(--jt-text-muted);
+
+    .d-icon {
+      width: 1em;
+      height: 1em;
+      margin: 0;
+      font-size: 1.125rem;
+      line-height: 1;
+      color: currentcolor;
+    }
+
+    &:hover,
+    &:focus-visible {
+      color: var(--jt-text);
+      background: var(--jt-hover);
+    }
+  }
+
+  #toggle-current-user img.avatar {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  // The avatar fills its button, so it ends on the page's right edge like the
+  // content under it; centred in a 40px box it stopped 4px short.
+  #toggle-current-user {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+// The icon row's selectors to beat core's header icon size; the centred copy
+// lives outside .d-header-icons, so it names its own wrapper
+.d-header
+  :is(.d-header-icons, .jt-header-search--centered)
+  .jt-header-search__button
+  .d-icon {
+  width: 1em;
+  height: 1em;
+  font-size: var(--jt-search-glyph, 1rem);
+  line-height: 1;
+}
+
+// ── Middle: the search field, centred on the whole bar ────
+// Wide screens with a mouse, unless a topic's title has the header: the
+// field leaves the icon row for the bar's centre line. It's absolute in
+// core's .contents, so a wide icon row or logo can't push it off centre.
+.jt-header-search--centered {
+  display: none;
+}
+
+@media (width >= 64rem) and (hover: hover) {
+  .d-header:not(:has(.extra-info-wrapper)) {
+    // Centred between both edges rather than with left: 50% and a -50%
+    // shift: in a right-to-left interface (Hebrew, which the forum offers
+    // and picks from the browser's language) core's stylesheet flipping
+    // turns left into right but leaves the shift, which put the field 330px
+    // off centre, over Sign Up and Log In.
+    .jt-header-search--centered {
+      position: absolute;
+      top: 50%;
+      inset-inline: 0;
+      display: block;
+      width: fit-content;
+      margin-inline: auto;
+      translate: 0 -50%;
+
+      .jt-header-search__button {
+        width: clamp(16rem, 30vw, 28rem);
+      }
+    }
+
+    .d-header-icons > .jt-header-search {
+      display: none;
+    }
+  }
+}
+
+// The search field shrinks to a plain icon, the same as its neighbours, on
+// narrow screens and touch, and below 64rem while a topic's title is in the
+// header (it needs the room).
+@mixin jt-search-icon-only {
+  --jt-search-glyph: 1.125rem;
+  justify-content: center;
+  width: 2.5rem;
+  padding: 0;
+  color: var(--jt-text-muted);
+  background: transparent;
+  border-color: transparent;
+
+  .jt-header-search__label,
+  .jt-header-search__keys {
+    display: none;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: var(--jt-text);
+    background: var(--jt-hover);
+    border-color: transparent;
+  }
+}
+
+.jt-header-search__button {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  box-sizing: border-box;
+  width: 15rem;
+  height: 2.5rem;
+  padding: 0 0.4rem 0 0.75rem;
+  font-size: var(--jt-text-md);
+  color: var(--jt-text-subtle);
+  text-align: left;
+  background: var(--jt-fill);
+  border: 1px solid var(--jt-border-strong);
+  border-radius: var(--jt-radius-control);
+  cursor: pointer;
+  transition:
+    border-color 0.12s ease-out,
+    color 0.12s ease-out;
+
+  .d-icon {
+    color: currentcolor;
+  }
+
+  // "Search…" is English (the theme's strings are), and read right to left
+  // in a Hebrew interface its "…" came first: "…Search". It reads in its own
+  // direction (dir="auto") and stays beside the magnifier (a physical left,
+  // which core's right-to-left stylesheet turns into right).
+  .jt-header-search__label {
+    flex: 1;
+    text-align: left;
+  }
+
+  .jt-header-search__keys {
+    display: inline-flex;
+    gap: 2px;
+
+    kbd {
+      display: inline-grid;
+      place-items: center;
+      min-width: 1.4rem;
+      height: 1.4rem;
+      padding: 0 0.25rem;
+      font-family: var(--jt-font-sans);
+      font-size: var(--jt-text-2xs);
+      line-height: 1;
+      color: var(--jt-text-muted); // subtle grey on the sunken chip is 4.3:1
+      background: var(--jt-surface-sunken);
+      border: 1px solid var(--jt-border);
+      border-radius: 5px;
+      box-shadow: none;
+    }
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: var(--jt-text-muted);
+    border-color: var(--jt-text-subtle);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 1px var(--jt-focus);
+  }
+
+  @media (width < 48rem), (hover: none) {
+    @include jt-search-icon-only;
+  }
+}
+
+@media (width < 64rem) {
+  .d-header:has(.extra-info-wrapper) .jt-header-search__button {
+    @include jt-search-icon-only;
+  }
+}
+
+// Unread counts: a small inverse pill on the icon's corner
+.jt-header-icon.btn {
+  position: relative;
+}
+
+.jt-header-icon__badge {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.25rem;
+  font-size: 0.6667rem; // 10px
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--jt-surface);
+  background: var(--jt-text);
+  border: 2px solid var(--jt-surface);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+// The bell (and the envelope) carry these counts now; the avatar's own badge
+// would repeat them. Core's review-queue badge for staff stays: the bell
+// doesn't count reviewables.
+.d-header-icons:has(.jt-header-notifications)
+  .current-user
+  .badge-notification.unread-notifications,
+.d-header-icons:has(.jt-header-messages)
+  .current-user
+  .badge-notification.new-pms {
+  display: none;
+}
+
+// Narrower windows keep the essentials (search, notifications, avatar);
+// phones also drop "+" (the list has its own) and the ☰ takes the menu
+@media (width < 64rem) {
+  .jt-header-home,
+  .jt-header-messages,
+  .jt-header-theme {
+    display: none;
+  }
+}
+
+html.mobile-view {
+  .jt-header-home,
+  .jt-header-messages,
+  .jt-header-theme,
+  .jt-header-new-topic {
+    display: none;
+  }
+}
+
+// ── Focus rings ───────────────────────────────────────────
+// Core clips the logo and, once the title has scrolled away, the topic's
+// title and category (overflow: hidden, for the ellipsis), and each link
+// fills its box, so a keyboard focus ring was cut away entirely. The logo's
+// box takes the ring; the title's and category's get room for it, balanced by
+// a negative margin so nothing moves.
+.d-header .home-logo-wrapper-outlet:has(a:focus-visible) {
+  outline: 2px solid var(--jt-focus);
+  outline-offset: 2px;
+}
+
+.extra-info-wrapper :is(.extra-info, .categories-wrapper) {
+  padding: 0.25rem;
+  margin: -0.25rem;
+}
+
+// Scrolled into a topic, its title takes the bar beside the logo: core's 8px
+// left it pressed against the mark.
+.d-header .extra-info-wrapper {
+  padding-inline-start: 1rem;
+}

@@ -1,0 +1,183 @@
+.topic-list {
+  .main-link a.title {
+    color: var(--jt-text);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  .visited .main-link a.title,
+  .main-link a.title.visited {
+    color: var(--jt-text-muted);
+  }
+
+  .num,
+  .activity,
+  .posts-map {
+    color: var(--jt-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.badge-notification.unread-posts,
+.badge-notification.new-posts {
+  background: var(--jt-accent);
+  color: var(--jt-on-accent);
+  font-weight: 600;
+}
+
+// "New topic" is a dot (core draws it with ::before on a clear badge); a pill
+// background behind it turned it into a blob.
+.badge-notification.new-topic::before {
+  background: var(--jt-accent);
+}
+
+// Tabs are links, or buttons where they switch in place (the search page's
+// Posts / Categories & tags / Users): the buttons were at the regular weight
+// and lost the top and bottom of their focus ring.
+.nav-pills > li > :is(a, button) {
+  font-weight: 500;
+
+  // The tabs fill a row that scrolls sideways, which cut an outer focus ring
+  // off: draw it inside the tab
+  &:focus-visible {
+    outline-offset: -2px;
+  }
+}
+
+// Core takes the focus ring off topic titles in its own lists (suggested
+// topics under a topic)
+.topic-list .main-link a.title:focus-visible {
+  outline: 2px solid var(--jt-focus);
+  outline-offset: 2px;
+}
+
+// ── Desktop list controls: filters · tabs · New Topic ──
+// Core wraps the row item by item when it runs out of room, which dropped
+// "New Topic" onto a line of its own. Here the tabs and the buttons always
+// share a line. When the whole row doesn't fit, the filters move up to a line
+// of their own: the row runs right to left and wraps upwards, so the filters
+// are what breaks off. The tabs are never wider than the room beside the
+// buttons (--jt-list-buttons, kept by api-initializers/jt-list-controls), so
+// they can't part from them either; below that they scroll sideways, fading
+// at whichever edge is cut off. Below 66rem New Topic keeps only its icon
+// (the header's + does the same).
+@property --jt-tabs-fade-start {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --jt-tabs-fade-end {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0;
+}
+
+// The fades run from a strip's start edge to its end edge, and the scroll
+// timeline counts from the start: in a right-to-left interface (Hebrew, which
+// the forum offers) that's right to left. Core's right-to-left stylesheet
+// doesn't turn a gradient round, so the cut-off edge stayed hard and the
+// start faded: the direction is set here instead.
+:root {
+  --jt-tabs-fade-to: to right;
+}
+
+html.rtl {
+  --jt-tabs-fade-to: to left;
+}
+
+@keyframes jt-tabs-fade {
+  0% {
+    --jt-tabs-fade-start: 0px;
+    --jt-tabs-fade-end: 2rem;
+  }
+
+  8% {
+    --jt-tabs-fade-start: 2rem;
+  }
+
+  92% {
+    --jt-tabs-fade-end: 2rem;
+  }
+
+  100% {
+    --jt-tabs-fade-start: 2rem;
+    --jt-tabs-fade-end: 0px;
+  }
+}
+
+html.desktop-view .list-controls .navigation-container {
+  --jt-list-gap: var(--space-3);
+  flex-flow: row-reverse wrap-reverse;
+  gap: var(--jt-list-gap);
+
+  // `order` runs right to left here; anything a plugin adds after the
+  // filters (outlet after-breadcrumbs) stays between them and the tabs
+  > * {
+    order: 3;
+  }
+
+  > .navigation-controls {
+    order: 1;
+    flex: none;
+    flex-wrap: nowrap;
+    margin-left: auto;
+  }
+
+  > #navigation-bar {
+    order: 2;
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    min-width: 0;
+    max-width: calc(100% - var(--jt-list-buttons, 25rem) - var(--jt-list-gap));
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+
+    > li {
+      flex: none;
+    }
+
+    // only while the tabs actually scroll (no scroll timeline otherwise)
+    @supports (animation-timeline: scroll()) {
+      mask-image: linear-gradient(
+        var(--jt-tabs-fade-to),
+        transparent,
+        #000 var(--jt-tabs-fade-start),
+        #000 calc(100% - var(--jt-tabs-fade-end)),
+        transparent
+      );
+      animation: jt-tabs-fade linear both;
+      animation-timeline: scroll(self inline);
+
+      // scroll-driven, so the duration stays auto (see jt-sidebar's fade)
+      animation-duration: auto !important;
+    }
+  }
+
+  > .category-breadcrumb {
+    order: 4;
+    flex: none;
+
+    // left-aligned when it's alone on its line
+    margin-right: auto;
+  }
+
+  @media (width < 66rem) {
+    #create-topic {
+      .d-button-label {
+        display: none;
+      }
+
+      .d-icon {
+        margin: 0;
+      }
+    }
+  }
+}
+
+// The categories page's latest column dates its topics in core's border grey
+// (#c9c9c9 on white, 1.7:1; #4d4d4d on black)
+.latest-topic-list-item .topic-last-activity a {
+  color: var(--jt-text-subtle);
+}
