@@ -36,6 +36,7 @@ import type { Post, Topic } from "../types.ts";
 import { hiddenParts, hiddenState, showHidden } from "../ui/hidden-text.ts";
 import { showPictures, viewPicture } from "../ui/pictures.ts";
 import { icon } from "../ui/icons.ts";
+import { openTipSheet } from "../ui/monero-tip.ts";
 import {
   actionSheet,
   confirmDialog,
@@ -531,6 +532,7 @@ function wireTopic(
   const editId = parseInt(ctx.query.edit || "", 10);
   if (editId > 0) requestAnimationFrame(() => edit({ id: editId }));
   s.act("reply-post", (el) => reply(postFrom(el)));
+  s.act("monero-tip", (el) => openTipSheet(el.getAttribute("data-user") || ""));
 
   // ── Likes & reactions ───────────────────────────────────────────────
 

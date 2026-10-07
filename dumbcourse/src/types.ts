@@ -119,6 +119,9 @@ export interface Post {
   staff?: boolean;
   trust_level?: number;
   user_title?: string | null;
+  // Public user fields a plugin exposed, preloaded for every author on the
+  // page. discourse-monero-tips puts a wallet address here.
+  user_custom_fields?: Record<string, string> | null;
   flair_name?: string | null;
   action_code?: string | null;
   bookmarked?: boolean;

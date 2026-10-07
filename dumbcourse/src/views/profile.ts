@@ -15,12 +15,14 @@ import { isMe, user } from "../session.ts";
 import { avatar, categoryBadge, topicPath } from "../site.ts";
 import { icon } from "../ui/icons.ts";
 import { actionSheet } from "../ui/layers.ts";
+import { moneroAddress, openTipSheet } from "../ui/monero-tip.ts";
 import { decodeEntities } from "../ui/topic-row.ts";
 import { useScreen } from "./common.ts";
 import { openComposer } from "./composer.ts";
 
 interface UserJson {
   id: number;
+  custom_fields?: Record<string, string> | null;
   username: string;
   name?: string | null;
   avatar_template: string;
@@ -161,6 +163,19 @@ function paint(
       </button>`
     );
   }
+  if (moneroAddress(u.custom_fields)) {
+    actions.push(
+      html`<button
+        type="button"
+        class="btn"
+        data-act="monero-tip"
+        data-user="${u.username}"
+        data-key="monero-tip"
+      >
+        ${icon("xmr")}Monero Tips
+      </button>`
+    );
+  }
   if (me) {
     actions.push(
       html`<a class="btn" href="${href("/preferences")}" data-key="prefs"
@@ -247,6 +262,7 @@ function paint(
   s.act("message-user", () =>
     openComposer({ kind: "message", to: u.username })
   );
+  s.act("monero-tip", () => openTipSheet(u.username));
   if (!me && reqpmOn)
     s.softkeys({
       right: {

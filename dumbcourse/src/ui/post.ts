@@ -12,6 +12,7 @@ import { count, dateTime, timeAgo } from "../format.ts";
 import { html, raw, type SafeHtml } from "../html.ts";
 import { isStaff } from "../session.ts";
 import { avatar, userHref } from "../site.ts";
+import { moneroAddress, tipButton } from "./monero-tip.ts";
 import type { Poll, Post, ReactionCount } from "../types.ts";
 import { icon } from "./icons.ts";
 
@@ -328,6 +329,7 @@ export function renderPost(
             : ""}
         </button>`
       : html``;
+  const tipBtn = tipButton(p.username, !!moneroAddress(p.user_custom_fields));
   const label = `Post ${p.post_number} by ${p.username}, ${timeAgo(p.created_at)} ago${like.count ? `, ${like.count} likes` : ""}${p.bookmarked ? ", bookmarked" : ""}`;
 
   const markup = html`<article
@@ -375,7 +377,7 @@ export function renderPost(
     <div class="post-body cooked">${raw(bodyHtml)}${leftover}</div>
     ${reactionPills(p, allowed)}
     <footer class="post-foot">
-      ${likeBtn}
+      ${likeBtn}${tipBtn}
       ${p.reply_count
         ? html`<button
             type="button"
