@@ -23,6 +23,8 @@ upstream merges stay easy.
   - On forums that sign in elsewhere (DiscourseConnect, or no local logins,
     e.g. an OIDC SSO), `/dumb` sends sign-in to the full site and comes back
     to `/dumb` afterwards.
+  - Monero Tips button on posts and profiles, for members with an address in
+    discourse-monero-tips (`dumbcourse/src/ui/monero-tip.ts`).
 - **README** is our own; on upstream merges keep ours
   (`git checkout --ours README.md`).
 - **First-post checklist** is edited from the Mod tab (admins), not from a
