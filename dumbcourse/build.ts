@@ -152,7 +152,7 @@ async function buildJs(entry: string, banner = BANNER): Promise<string> {
   const lowered = ts.transpileModule(es2017, {
     compilerOptions: {
       target: ts.ScriptTarget.ES5,
-      // shortcut: TypeScript 7 drops the ES5 target; lower with another tool before upgrading.
+      // TypeScript 7 drops the ES5 target; lower with another tool before upgrading.
       ignoreDeprecations: "6.0",
       module: ts.ModuleKind.CommonJS,
       allowJs: true,
