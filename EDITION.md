@@ -1,6 +1,6 @@
 # Power Tools Nautas edition
 
-Criptonautas' edition of [JtechTools](https://github.com/JTech-Forums/JtechTools).
+Criptonautas' edition of [JtechTools](https://github.com/TripleU613/JtechTools).
 It tracks upstream `main` and adds a thin layer of changes on top, kept small so
 upstream merges stay easy.
 
@@ -48,13 +48,13 @@ upstream merges stay easy.
 ## Install
 
 ```yaml
-- git clone https://github.com/somos-criptonautas/discourse-power-tools-nautas.git
+- git clone https://github.com/somos-criptonautas/discourse-power-tools-nautas.git jtech-tools
 ```
 
 ## Sync with upstream
 
 ```bash
-git remote add upstream https://github.com/JTech-Forums/JtechTools  # once
+git remote add upstream https://github.com/TripleU613/JtechTools  # once
 git fetch upstream
 git merge upstream/main
 ```

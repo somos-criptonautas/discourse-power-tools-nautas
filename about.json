@@ -1,6 +1,6 @@
 {
   "name": "jtech-tools",
-  "about": "Power Tools Nautas — Criptonautas' Discourse power tools: moderator tools, Mini-mod, Dislike, the Disteleplus Telegram bridge, REQ-PM, Dumbcourse, smart search, desktop pop-ups, Another SMTP and translator tweaks",
+  "about": "Power Tools Nautas — Criptonautas' Discourse power tools: moderator tools, Mini-mod, Dislike, the Disteleplus Telegram bridge, REQ-PM, listing format for sale threads, Dumbcourse, smart search, desktop pop-ups, Another SMTP and translator tweaks",
   "version": "0.5.0",
   "authors": "Jtech Forums",
   "url": "https://github.com/somos-criptonautas/discourse-power-tools-nautas"

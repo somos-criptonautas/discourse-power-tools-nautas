@@ -37,7 +37,7 @@ hooks:
     - exec:
         cd: $home/plugins
         cmd:
-          - git clone https://github.com/somos-criptonautas/discourse-power-tools-nautas.git
+          - git clone https://github.com/somos-criptonautas/discourse-power-tools-nautas.git jtech-tools
 ```
 
 ```bash
@@ -45,7 +45,7 @@ cd /var/discourse
 ./launcher rebuild app
 ```
 
-Keep the folder name lowercase: Discourse builds the plugin's stylesheet address from it.
+Clone it into a folder named `jtech-tools`, the plugin's internal name; Discourse warns when the folder and the plugin name differ, and builds the plugin's stylesheet address from the folder.
 
 ## Turning things on
 
