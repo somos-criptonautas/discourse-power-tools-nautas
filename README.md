@@ -1,5 +1,7 @@
 # Power Tools Nautas
 
+**ENGLISH** | [ESPAÑOL](README.es.md)
+
 Maintained by Criptonautas. Not affiliated with or endorsed by Discourse (Civilized Discourse Construction Kit, Inc.).
 
 The Discourse plugin behind [Criptonautas](https://criptonautas.co): moderator tools, privacy features and a lightweight phone client, in one install. Every feature has its own switch, so you only run what you need.
@@ -59,4 +61,6 @@ Read the [repository rules](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md) and [
 
 ## License
 
-[GPL-3.0](LICENSE). Original authors: TripleU, Shalom Karr and Ars18.
+[GPL-3.0](LICENSE), inherited from [JtechTools](https://github.com/TripleU613/JtechTools). Original authors: TripleU, Shalom Karr and Ars18.
+
+Text of this README under [CC BY-NC-SA 4.0](CC-BY-NC-SA-4.0.txt).

@@ -3,7 +3,7 @@
 # name: jtech-tools
 # about: Power Tools Nautas — Criptonautas' Discourse power tools: moderator tools, Mini-mod, Dislike, the Disteleplus Telegram bridge, REQ-PM, listing format for sale threads, Dumbcourse, smart search, desktop pop-ups, Another SMTP and translator tweaks.
 # version: 0.5.0
-# authors: TripleU, Shalom_Karr, Ars18
+# authors: TripleU, Shalom_Karr, Ars18 — Forked by Criptonautas
 # url: https://github.com/somos-criptonautas/discourse-power-tools-nautas
 # required_version: 3.0.0
 
