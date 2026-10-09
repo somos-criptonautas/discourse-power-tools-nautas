@@ -1,5 +1,7 @@
 # Power Tools Nautas
 
+Maintained by Criptonautas. Not affiliated with or endorsed by Discourse (Civilized Discourse Construction Kit, Inc.).
+
 The Discourse plugin behind [Criptonautas](https://criptonautas.co): moderator tools, privacy features and a lightweight phone client, in one install. Every feature has its own switch, so you only run what you need.
 
 ## What's inside
