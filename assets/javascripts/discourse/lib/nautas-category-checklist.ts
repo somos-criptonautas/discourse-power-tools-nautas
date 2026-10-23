@@ -2,9 +2,9 @@ import type Owner from "@ember/owner";
 import { ajax } from "discourse/lib/ajax";
 import { CREATE_TOPIC } from "discourse/models/composer";
 import type ModalService from "discourse/services/modal";
-import ModFirstPostChecklist from "../components/mod-first-post-checklist";
-import type { OwedChecklist } from "./first-post-checklist";
-import { type PrecheckComposer, REPLY_ACTION } from "./precheck-prompt";
+import ModFirstPostChecklist from "../components/mod-first-post-checklist.gts";
+import type { OwedChecklist } from "./first-post-checklist.ts";
+import { type PrecheckComposer, REPLY_ACTION } from "./precheck-prompt.ts";
 
 type CategoryComposer = PrecheckComposer & {
   categoryId?: number | null;

@@ -13,7 +13,7 @@ import { i18n } from "discourse-i18n";
 import {
   type TrustLevelOption,
   trustLevelOptions,
-} from "../../lib/trust-level-options";
+} from "../../lib/trust-level-options.ts";
 
 interface ComboBoxSignature {
   Element: HTMLElement;

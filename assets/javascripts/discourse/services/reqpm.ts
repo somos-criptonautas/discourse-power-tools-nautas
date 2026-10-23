@@ -6,9 +6,9 @@ import type User from "discourse/models/user";
 import type MessageBusService from "discourse/services/message-bus";
 import type ModalService from "discourse/services/modal";
 import type SiteSettingsService from "discourse/services/site-settings";
-import ReqpmSetupModal from "../components/reqpm-setup-modal";
-import ReqpmUserModal from "../components/reqpm-user-modal";
-import type { ReqpmKindId } from "../lib/reqpm-kinds";
+import ReqpmSetupModal from "../components/reqpm-setup-modal.gts";
+import ReqpmUserModal from "../components/reqpm-user-modal.gts";
+import type { ReqpmKindId } from "../lib/reqpm-kinds.ts";
 
 const BASE = "/jtech-reqpm";
 

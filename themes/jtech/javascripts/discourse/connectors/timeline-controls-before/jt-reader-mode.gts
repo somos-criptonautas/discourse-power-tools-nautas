@@ -2,7 +2,11 @@ import Component from "@glimmer/component";
 import { action } from "@ember/object";
 import { settings, themePrefix } from "virtual:theme";
 import DButton from "discourse/ui-kit/d-button";
-import { READER_SIZES, READER_WIDTHS, readerMode } from "../../lib/jt-reader";
+import {
+  READER_SIZES,
+  READER_WIDTHS,
+  readerMode,
+} from "../../lib/jt-reader.ts";
 
 // Reader mode's switch at the top of the timeline (where the component had
 // it), and while it's on, its text size, column width and type.
