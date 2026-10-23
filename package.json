@@ -14,7 +14,7 @@
     "playwright-core": "1.63.0",
     "postcss": "8.5.29",
     "prettier": "3.8.1",
-    "sass": "1.105.1",
+    "sass": "1.105.2",
     "sharp": "0.35.5",
     "stylelint": "17.5.0",
     "typescript": "6.0.3"
