@@ -2,7 +2,7 @@ import type { TemplateOnlyComponent } from "@ember/component/template-only";
 import { array } from "@ember/helper";
 import AdminAreaSettings from "discourse/admin/components/admin-area-settings";
 import type AdminAreaSettingsBaseController from "discourse/admin/controllers/admin-area-settings-base";
-import NautasChecklistButton from "../../../components/nautas-checklist-button";
+import NautasChecklistButton from "../../../components/nautas-checklist-button.gts";
 
 const JtechToolsMod: TemplateOnlyComponent<{
   Args: { controller: AdminAreaSettingsBaseController };
