@@ -57,14 +57,20 @@
 // the sidebar stays put and the logo sits at the left wall, on the same
 // line as the sidebar's search row. Narrower windows keep the ☰, which is
 // the only way to open the slide-out sidebar there.
-@media (width >= 48rem) {
+@include viewport.from(md) {
   html.desktop-view {
     .d-header .header-sidebar-toggle {
       display: none;
     }
 
+    // The logo starts where the sidebar's icons do: the page's own inset
+    // (core's wrap padding), the sidebar's, and a row's. At a fixed 0.5333rem
+    // it stuck out 20px to their left, past the column it heads.
     .d-header > .wrap {
-      padding-left: 0.5333rem;
+      padding-left: calc(
+        var(--d-wrap-padding-x) + 0.5rem +
+          var(--d-sidebar-row-horizontal-padding)
+      );
     }
 
     // A header component reserves 3.7em left of the logo for the ☰
@@ -288,7 +294,7 @@ html.jt-has-color-toggle .d-header-icons .header-color-scheme-toggle {
   }
 }
 
-@media (width < 64rem) {
+@include viewport.until(lg) {
   .d-header:has(.extra-info-wrapper) .jt-header-search__button {
     @include jt-search-icon-only;
   }
@@ -313,8 +319,8 @@ html.jt-has-color-toggle .d-header-icons .header-color-scheme-toggle {
   font-weight: 600;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  color: var(--jt-surface);
-  background: var(--jt-text);
+  color: var(--jt-on-accent);
+  background: var(--jt-accent);
   border: 2px solid var(--jt-surface);
   border-radius: 999px;
   pointer-events: none;
@@ -334,7 +340,7 @@ html.jt-has-color-toggle .d-header-icons .header-color-scheme-toggle {
 
 // Narrower windows keep the essentials (search, notifications, avatar);
 // phones also drop "+" (the list has its own) and the ☰ takes the menu
-@media (width < 64rem) {
+@include viewport.until(lg) {
   .jt-header-home,
   .jt-header-messages,
   .jt-header-theme {
@@ -371,4 +377,18 @@ html.mobile-view {
 // left it pressed against the mark.
 .d-header .extra-info-wrapper {
   padding-inline-start: 1rem;
+}
+
+// The square logo is an app icon: in the theme's squircle (a rounded box
+// where corner-shape doesn't work), not a hard-edged square. Core's small
+// logo while scrolled into a topic, and on phones, where mobile_small_logo
+// puts the small logo in the mobile one's place.
+.d-header img.logo-small {
+  border-radius: var(--jt-radius-avatar);
+}
+
+@if $mobile_small_logo == "true" {
+  .d-header img.logo-mobile {
+    border-radius: var(--jt-radius-avatar);
+  }
 }

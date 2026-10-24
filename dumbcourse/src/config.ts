@@ -19,6 +19,8 @@ export interface BootUser {
   new_personal_messages_notifications_count: number;
   reqpm_available: boolean;
   reqpm_incoming_count: number;
+  // 1 while Vote Week is open and this voter hasn't voted.
+  mod_election_vote_due: number;
   can_pair_devices: boolean;
   second_factor_enabled: boolean;
 }
@@ -77,6 +79,7 @@ export interface BootSettings {
   reqpmCountryCode: string;
   leaderboardId: number;
   openLinksHere: boolean;
+  modElectionsEnabled: boolean;
   tagsEnabled: boolean;
   maxPostLength: number;
   minPostLength: number;
@@ -139,6 +142,7 @@ const DEFAULTS: BootSettings = {
   reqpmCountryCode: "1",
   leaderboardId: 0,
   openLinksHere: false,
+  modElectionsEnabled: false,
   tagsEnabled: false,
   maxPostLength: 32000,
   minPostLength: 1,

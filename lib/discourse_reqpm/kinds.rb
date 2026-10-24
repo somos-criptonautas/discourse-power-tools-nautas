@@ -13,7 +13,7 @@ module DiscourseReqpm
     PRESETS = {
       "phone" => :phone,
       "sms" => :phone,
-      "whatsapp" => :phone,
+      "whatsapp" => :handle_or_phone,
       "email" => :email,
       "website" => :url,
       "telegram" => :handle_or_phone,
@@ -47,10 +47,6 @@ module DiscourseReqpm
 
     def self.valid?(kind)
       ALL.include?(kind.to_s)
-    end
-
-    def self.preset?(kind)
-      PRESETS.key?(kind.to_s)
     end
 
     # Returns a hash of the cleaned attributes, or raises Invalid naming the

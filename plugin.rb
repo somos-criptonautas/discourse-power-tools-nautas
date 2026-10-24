@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # name: jtech-tools
-# about: Power Tools Nautas — Criptonautas' Discourse power tools: moderator tools, Mini-mod, Dislike, the Disteleplus Telegram bridge, REQ-PM, listing format for sale threads, Dumbcourse, smart search, desktop pop-ups, Another SMTP and translator tweaks.
+# about: Power Tools Nautas — Criptonautas' Discourse power tools: moderator tools, Mini-mod, Dislike, the Disteleplus Telegram bridge, REQ-PM, listing format for sale threads, mod elections, Dumbcourse, smart search, desktop pop-ups, Another SMTP and translator tweaks.
 # version: 0.5.0
 # authors: TripleU, Shalom_Karr, Ars18 — Forked by Criptonautas
 # url: https://github.com/somos-criptonautas/discourse-power-tools-nautas
@@ -15,7 +15,8 @@ gem "rwordnet", "2.0.0", require: false
 # Master gate. Each sub-plugin keeps its own enable setting (e.g.
 # discourse_no_likes_enabled, mini_mod_enabled, mod_categories_enabled,
 # dumbcourse_enabled, discourse_another_email_enabled, smart_search_enabled,
-# reqpm_enabled, listing_format_enabled) for fine-grained control.
+# reqpm_enabled, listing_format_enabled, mod_elections_enabled) for
+# fine-grained control.
 enabled_site_setting :jtech_enabled
 
 # Load each sub-plugin's body in the Plugin::Instance context so that all
@@ -42,6 +43,10 @@ enabled_site_setting :jtech_enabled
   listing_format
   jtech_theme
   nautas
+  mod_elections
+  trust_level_flair
+  badge_thresholds
+  jtech_badges
 ].each do |sub|
   path = File.expand_path("sub_plugins/#{sub}.rb", __dir__)
   instance_eval(File.read(path), path, 1)

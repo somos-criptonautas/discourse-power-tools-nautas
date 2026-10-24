@@ -190,7 +190,8 @@ export default {
           "mod_whisper_target_badge_ids",
           "mod_whisper_target_badges",
           "mod_whisper_is_staff_only",
-          "mod_whisper_author_is_staff"
+          "mod_whisper_author_is_staff",
+          "mod_whisper_admins_only"
         );
       } else {
         api.includePostAttributes(
@@ -202,7 +203,8 @@ export default {
           "mod_whisper_target_badge_ids",
           "mod_whisper_target_badges",
           "mod_whisper_is_staff_only",
-          "mod_whisper_author_is_staff"
+          "mod_whisper_author_is_staff",
+          "mod_whisper_admins_only"
         );
       }
 
@@ -287,7 +289,9 @@ export default {
 
           if (staffOnly) {
             label.textContent = ` ${i18n(
-              "discourse_mod_categories.whisper.banner_to_staff"
+              post.mod_whisper_admins_only
+                ? "discourse_mod_categories.whisper.banner_to_admins"
+                : "discourse_mod_categories.whisper.banner_to_staff"
             )}`;
             banner.appendChild(label);
           } else {
@@ -321,7 +325,8 @@ export default {
               const link = document.createElement("a");
               link.className = "mod-whisper-banner__group";
               link.href = `/g/${g.name}`;
-              link.textContent = g.name;
+              // "@" as a mention of the group, like the people beside it
+              link.textContent = `@${g.name}`;
               banner.appendChild(link);
             });
 

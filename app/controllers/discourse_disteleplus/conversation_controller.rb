@@ -186,11 +186,12 @@ module DiscourseDisteleplus
       raise Discourse::NotFound unless SiteSetting.disteleplus_read_receipts_enabled
       rate_limit!("read-states", 30, 1.minute)
 
+      # Groups are preloaded too: Access.allowed? reads each user's group ids.
       states =
         UserState
           .where.not(user_id: current_user.id)
           .where.not(last_read_message_id: nil)
-          .includes(:user)
+          .includes(user: :groups)
           .order(last_read_message_id: :desc)
           .limit(100)
           .filter_map do |state|
@@ -218,6 +219,7 @@ module DiscourseDisteleplus
           success: true,
           last_read_message_id: state&.last_read_message_id,
           unread_count: unread_count(state&.last_read_message_id),
+          unread_mention_count: Notifier.unread(current_user).count,
         },
       )
     end
@@ -243,7 +245,10 @@ module DiscourseDisteleplus
           .to_a
           .reverse
       target =
-        Message.includes(:user, :uploads, reply_to: :user, reactions: :user).where(id: id).to_a
+        Message
+          .includes(:user, :uploads, reply_to: :user, reactions: :user, listens: :user)
+          .where(id: id)
+          .to_a
       after =
         Message
           .includes(:user, :uploads, reply_to: :user, reactions: :user)
@@ -286,8 +291,12 @@ module DiscourseDisteleplus
         latest_message_id: latest_id,
         last_read_message_id: state&.last_read_message_id,
         unread_count: unread_count(state&.last_read_message_id),
+        # The header badge counts only these: messages that mention the user
+        unread_mention_count: Notifier.unread(current_user).count,
         has_more: messages.any? && Message.where("id < ?", messages.first.id).exists?,
         message_bus_channel: Publisher::CHANNEL,
+        # The page listens from here, so a message sent while it loads isn't lost
+        message_bus_last_id: MessageBus.last_id(Publisher::CHANNEL),
         can_upload: true,
         voice_notes_enabled: SiteSetting.disteleplus_voice_notes_enabled,
         read_receipts_enabled: SiteSetting.disteleplus_read_receipts_enabled,

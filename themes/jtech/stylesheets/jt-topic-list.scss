@@ -51,16 +51,57 @@
   outline-offset: 2px;
 }
 
+// Rows of a list that isn't cards (suggested topics under a topic; any list
+// with topic_cards off). Core gives a pressed row nothing, and marks the row
+// you came back to (.selected) with a bar down one side of its first cell.
+// Here a pressed row sinks a little with the pressed tint and springs back,
+// as a card does, and the row you came back to is tinted all across.
+.topic-list:not(.jt-cards) .topic-list-item {
+  -webkit-tap-highlight-color: transparent;
+
+  // let go, it springs back: a little past full size, then settles
+  transition:
+    background-color var(--jt-motion),
+    scale 0.45s cubic-bezier(0.3, 1.8, 0.5, 1);
+
+  // not while a control in the row is pressed (category, tags, a poster)
+  &:active:not(:has(:is(a, button, input, label):not(.raw-topic-link):active)) {
+    scale: 0.985;
+    background: var(--jt-active);
+    transition:
+      background-color var(--jt-motion),
+      scale 0.1s cubic-bezier(0.2, 0, 0, 1);
+
+    @media (prefers-reduced-motion: reduce) {
+      scale: none;
+    }
+  }
+
+  &.selected {
+    background: var(--jt-active);
+
+    td:first-of-type {
+      box-shadow: none;
+    }
+  }
+}
+
+// A topic opens from anywhere on its row, in every list, not only from its
+// title (api-initializers/jt-topic-cards)
+.topic-list-item {
+  cursor: pointer;
+}
+
 // ── Desktop list controls: filters · tabs · New Topic ──
 // Core wraps the row item by item when it runs out of room, which dropped
-// "New Topic" onto a line of its own. Here the tabs and the buttons always
-// share a line. When the whole row doesn't fit, the filters move up to a line
-// of their own: the row runs right to left and wraps upwards, so the filters
-// are what breaks off. The tabs are never wider than the room beside the
-// buttons (--jt-list-buttons, kept by api-initializers/jt-list-controls), so
-// they can't part from them either; below that they scroll sideways, fading
-// at whichever edge is cut off. Below 66rem New Topic keeps only its icon
-// (the header's + does the same).
+// "New Topic" onto a line of its own. Here the tabs (one dropdown,
+// api-initializers/jt-compact-nav) and the buttons always share a line. When
+// the whole row doesn't fit, the filters move up to a line of their own: the
+// row runs right to left and wraps upwards, so the filters are what breaks
+// off. Below 66rem New Topic keeps only its icon (the header's + does the
+// same).
+
+// REQ-PM's tab strip (jt-tabs) fades at whichever edge is cut off
 @property --jt-tabs-fade-start {
   syntax: "<length>";
   inherits: false;
@@ -107,9 +148,13 @@ html.rtl {
 }
 
 html.desktop-view .list-controls .navigation-container {
-  --jt-list-gap: var(--space-3);
   flex-flow: row-reverse wrap-reverse;
-  gap: var(--jt-list-gap);
+
+  // Packed to the left: the tabs' dropdown sits beside the filters, and the
+  // room left over goes before New Topic (its margin). With the filters
+  // pushed left as well, the dropdown floated in the middle of the row.
+  justify-content: flex-end;
+  gap: var(--space-3);
 
   // `order` runs right to left here; anything a plugin adds after the
   // filters (outlet after-breadcrumbs) stays between them and the tabs
@@ -126,41 +171,11 @@ html.desktop-view .list-controls .navigation-container {
 
   > #navigation-bar {
     order: 2;
-    flex: 1 1 auto;
-    flex-wrap: nowrap;
-    min-width: 0;
-    max-width: calc(100% - var(--jt-list-buttons, 25rem) - var(--jt-list-gap));
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-
-    > li {
-      flex: none;
-    }
-
-    // only while the tabs actually scroll (no scroll timeline otherwise)
-    @supports (animation-timeline: scroll()) {
-      mask-image: linear-gradient(
-        var(--jt-tabs-fade-to),
-        transparent,
-        #000 var(--jt-tabs-fade-start),
-        #000 calc(100% - var(--jt-tabs-fade-end)),
-        transparent
-      );
-      animation: jt-tabs-fade linear both;
-      animation-timeline: scroll(self inline);
-
-      // scroll-driven, so the duration stays auto (see jt-sidebar's fade)
-      animation-duration: auto !important;
-    }
   }
 
   > .category-breadcrumb {
     order: 4;
     flex: none;
-
-    // left-aligned when it's alone on its line
-    margin-right: auto;
   }
 
   @media (width < 66rem) {
@@ -171,6 +186,176 @@ html.desktop-view .list-controls .navigation-container {
 
       .d-icon {
         margin: 0;
+      }
+    }
+  }
+}
+
+// Who's Online (connectors/inline-extra-nav-item/jt-online-box), beside the
+// tabs' dropdown: "Online: 3", which opens out into the people's faces in a
+// row, spread out into the room up to New Topic. The plugin's own row of avatars over the
+// list goes.
+html:not(.jt-vanilla) body:has(.jt-online-box) .online_users_widget {
+  display: none;
+}
+
+// Under a Discourse palette, the plugin's own row (jt-vanilla.scss)
+html.jt-vanilla .jt-online-box {
+  display: none;
+}
+
+.list-controls #navigation-bar {
+  align-items: center;
+}
+
+// The row takes the room that's left, and only that: its own width is
+// nothing (the faces would otherwise ask for all of theirs and push the
+// filters onto a line of their own), so it grows into the free space and
+// no further
+.list-controls #navigation-bar:has(.jt-online-box) {
+  flex: 1 1 auto;
+  min-width: 0;
+
+  > li:has(.jt-online-box) {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+
+    > * {
+      display: flex;
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+}
+
+// spaced on itself: a gap on the tabs' row would also space the outlet's
+// empty item where there's no box, and the row is tight at 900px
+.jt-online-box {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  margin-left: var(--space-3);
+}
+
+// a button: the faces open out beside it on a click, and fold away on the next
+.jt-online-box__label {
+  flex: none;
+  padding: 0.25rem 0.5rem;
+  font: inherit;
+  font-size: var(--jt-text-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--jt-text-muted);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: var(--jt-radius-control);
+
+  &:hover,
+  &[aria-expanded="true"] {
+    color: var(--jt-text);
+    background: var(--jt-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--jt-focus);
+  }
+}
+
+// More faces than fit fade out at the row's end rather than wrap
+.jt-online-box__people {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: 0.375rem;
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+}
+
+.jt-online-box__person {
+  display: flex;
+  flex: none;
+  border-radius: var(--jt-radius-avatar);
+
+  // in one after another, sideways, as the list comes in
+  animation: jt-online-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(min(var(--jt-i, 0), 16) * 35ms);
+
+  &:hover,
+  &:focus-visible {
+    opacity: 0.8;
+  }
+}
+
+@keyframes jt-online-in {
+  from {
+    opacity: 0;
+    transform: translateX(-0.5rem);
+  }
+}
+
+.jt-online-box__face {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--jt-radius-avatar);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jt-online-box__person {
+    animation: none;
+  }
+}
+
+// The tabs' dropdown (api-initializers/jt-compact-nav). Core styles it for
+// phones only, where it opens as a sheet: on a computer the button is a field
+// like the filters beside it, and the menu's tabs are rows like the palette
+// menu's.
+html.desktop-view {
+  .list-control-toggle-link-trigger {
+    gap: 0.5rem;
+    color: var(--jt-text);
+    background: var(--jt-surface);
+    border: 1px solid var(--jt-border-strong);
+    border-radius: var(--jt-radius-field);
+
+    .d-icon {
+      margin: 0;
+      color: var(--jt-text-subtle);
+    }
+
+    &:hover,
+    &.-expanded {
+      color: var(--jt-text);
+      background: var(--jt-surface);
+      border-color: var(--jt-text-subtle);
+    }
+  }
+
+  .list-control-toggle-link-content .dropdown-menu {
+    min-width: 12rem;
+    margin: 0;
+    padding: 0.25rem;
+    list-style: none;
+
+    a {
+      display: block;
+      padding: 0.4rem 0.5rem;
+      color: var(--jt-text);
+      border-radius: var(--jt-radius-control);
+
+      &:hover,
+      &:focus-visible {
+        background: var(--jt-hover);
+      }
+
+      &.active {
+        font-weight: 600;
+        background: var(--jt-active);
       }
     }
   }

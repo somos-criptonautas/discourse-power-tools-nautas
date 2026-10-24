@@ -3,6 +3,21 @@ en:
     quick_look: "Quick look"
     back_to_top: "Back to top"
     dismiss: "Dismiss"
+    palettes:
+      title: "Colors"
+    density:
+      title: "Density"
+      default: "Default"
+      comfortable: "Comfortable"
+      compact: "Compact"
+    dismiss_unread:
+      button: "Dismiss all"
+      confirm:
+        one: "Dismiss %{count} new and unread topic? It will be marked read."
+        other: "Dismiss all %{count} new and unread topics? They will be marked read."
+    online:
+      box: "Online: %{count}"
+      title: "Online · %{count}"
     icon_style:
       title: "Icon style"
       lucide: "Outline (Lucide)"
@@ -27,8 +42,7 @@ en:
       one: "%{count} like"
       other: "%{count} likes"
     first_reply:
-      title: "Be the first to reply"
-      description: "No one has replied yet. Start the conversation."
+      title: "No replies yet. Be the first."
     gate:
       title: "Log in to keep reading"
       description: "Topics in %{category} are for members."
@@ -36,6 +50,8 @@ en:
       sign_up: "Create account"
       log_in: "Log in"
       browse: "Browse open categories"
+    reaction_rollout:
+      open: "Add a reaction"
     copy_post:
       label: "Copy"
       title: "Copy this post's text (Markdown)"
@@ -69,13 +85,6 @@ en:
       title: "Inboxes"
       personal: "My messages"
       new_message: "New message"
-    reader:
-      toggle: "Reader mode (Ctrl+Alt+R)"
-      smaller: "Smaller text"
-      larger: "Larger text"
-      narrower: "Narrower column"
-      wider: "Wider column"
-      serif: "Serif type"
     qr:
       share: "QR code"
       title: "Scan with your phone"
@@ -88,9 +97,18 @@ en:
       search: "Search"
     footer:
       label: "Footer"
+      account: "Account"
+      log_in: "Log in"
+      sign_up: "Sign up"
+      profile: "Profile"
+      messages: "Messages"
+      bookmarks: "Bookmarks"
+      preferences: "Preferences"
+      back_to_top: "Back to top"
+      terms: "Terms"
     header:
       search: "Search…"
-      home: "JTech homepage"
+      home: "Homepage"
       theme: "Switch light / dark"
     people:
       title: "People"
@@ -112,12 +130,14 @@ en:
   theme_metadata:
     description: "JTech: Vercel-style AMOLED black and pure white, hairline borders, Geist type."
     settings:
-      header_home_url: "Where the header's house icon goes (the JTech homepage). Leave blank to hide it."
+      header_home_url: "Where the header's house icon goes, such as your organisation's homepage. Leave blank to hide it."
       color_mode_toggle: "Light / dark switch in the command menu (and its g o shortcut), and in the header when header_color_toggle is on. Clicking back to the mode your device uses returns to following the device."
       header_color_toggle: "Light / dark icon in the header, beside the bell (needs color_mode_toggle). Off: people switch from the sidebar's Color mode menu or the command menu. The sidebar menu is Discourse's own; it shows while the site setting interface color selector is set to sidebar footer. While the icon shows, it replaces Discourse's header colour selector."
+      palette_menu: "Palette button in the sidebar footer: every palette the theme offers (JTech, Dim and the colour pairs), switched with one click and no reload. Members keep their choice on every device (it is the same setting as Preferences → Interface); visitors keep it in this browser. Hidden when there is only one palette to choose."
+      density_menu: "Density button in the sidebar footer, beside the palette button: topic lists as they are, Comfortable (cards without the excerpt and picture) or Compact (one row a topic), like Gmail's. Kept in this browser."
       overlay_scrollbar: "Thin overlay scrollbar for the page (macOS style) on mouse/trackpad devices, instead of the browser's wide classic one."
       back_to_top: "Floating back-to-top button on long pages (not on topics, which have their own)."
-      command_menu: "⌘K / Ctrl+K command menu: jump to pages, categories, topics and people, or run an action."
+      command_menu: "⌘K / Ctrl+K command menu: jump to pages, categories, topics and people, or run an action. ⌘⇧K / Ctrl+Shift+K opens advanced search."
       card_thumbnails: "Show the topic's first image beside its title on topic cards."
       code_language_labels: "Header showing the language on code blocks whose author named one (```bash)."
       code_line_numbers: "Line numbers in a gutter beside code blocks of two or more lines. Copying a block copies the code only."
@@ -136,8 +156,9 @@ en:
       post_badges: "Badges to show after a poster's name on their posts, when they have them, in this order. Each links to its badge page. Use each badge's exact name from Admin → Badges (case doesn't matter, spaces do)."
       image_carousels: "Show the pictures in posts written with the Post Image Carousel component ([wrap=Carousel]) as Discourse's own carousel, the one [grid mode=carousel] makes. The component's autoplay, loop and thumbnails aren't carried over."
       sidebar_inboxes: "For people in groups with a shared inbox (on the forum, staff): an Inboxes section in the sidebar with their own messages and each group's, with unread counts. Everyone else keeps Discourse's My Messages link."
-      reader_mode: "A reader mode switch at the top of a topic's timeline (and Ctrl+Alt+R): the sidebar goes, the header and the posts' buttons fade back until pointed at, and the posts' text can be made larger, narrower or wider, or set in a serif. Text settings are kept per browser."
+      online_box: "With the Who's Online plugin: beside the topic list's tabs, Online: 3, which opens out on a click into the faces of the people online in a row, spread out into the room up to New Topic, each a link to their profile, instead of the plugin's row of avatars over the list. Shown to whoever the plugin shows its row to, while at least its minimum are online."
       qr_code_share: "Add QR code to the share options (sharing a topic or a post, and the buttons over a quote): the link as a code to scan with a phone, with a button to save it as an image."
+      reaction_rollout: "With the Reactions plugin: the heart likes a post when clicked, and pointing at it rolls the reactions out sideways in the post's menu, pushing its buttons along, instead of a box over the post. A row that doesn't fit scrolls (a mouse wheel scrolls it too). On phones and tablets a button beside the heart opens the row with a tap, and Discourse's long press still works."
       topic_jump_buttons: "First-post and last-post buttons under the topic timeline, and beside the progress button on phones."
       hide_lock_icons: "Hide the padlock on private categories' badges and links (everyone who sees the category already has access)."
       gated_categories: "Categories whose topics logged-out visitors can't read: the first post fades out under a prompt to log in or create an account. This only hides topics in the browser (they're still sent to the visitor); to really keep a category private, change its security settings."
@@ -151,7 +172,8 @@ en:
       tag_banners: "Show a header with the tag's name and description on tag pages."
       footer_enabled: "Show the JTech footer once a page has fully loaded."
       footer_tagline: "Line under the footer logo. Leave blank to hide."
-      footer_links: "Footer links. Links sharing a section form one column, in the order sections first appear."
+      footer_notice: "Small print on the footer's last line, between the copyright and Back to top, followed by a link to the Terms of Service. Leave blank to hide."
+      footer_links: "Footer links. Links sharing a section form one column, in the order sections first appear. An Account column of the footer's own (log in and sign up, or the member's profile, messages, bookmarks and preferences) comes before a section called Legal, or last."
       hero_enabled: "Show the front-page hero (headline, search, and Sign Up / Log In for visitors) on the homepage, Latest and Categories."
       hero_title: "Hero headline."
       hero_subtitle: "Hero supporting line. Leave blank to hide."
@@ -163,5 +185,5 @@ en:
       monochrome_categories: "Show category colors in grayscale (badges and sidebar icons)."
       monochrome_letter_avatars: "Render generated letter avatars in grayscale. Uploaded avatars keep their color."
       monochrome_heatmap: "Use weight instead of orange/red for busy view and reply counts."
-      lucide_icons: "Draw Discourse's icons with Lucide's thin outline set (lucide.dev) instead of Font Awesome: the header, sidebar, post menu, notifications and the rest. Brand logos and icons without a Lucide match keep Font Awesome."
+      lucide_icons: "Draw Discourse's icons with Lucide's thin outline set (lucide.dev) instead of Font Awesome: the header, sidebar, post menu, notifications and the rest. Brand logos and icons without a Lucide match keep Font Awesome, and so does everything under the Discourse palette, which looks like stock Discourse."
       monochrome_flair: "Draw the avatar flair of trust levels, moderators and admins in black and white with JTech's own marks: a ring for new users, one to three chevrons for trust levels 1–3, a star for 4, a shield for staff (filled for admins). The groups' own colors and icons are ignored while it's on; other groups' flair keeps them."
