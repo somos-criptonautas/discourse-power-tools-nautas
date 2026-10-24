@@ -41,6 +41,8 @@ require_relative "../lib/discourse_dumbcourse/engine"
 require_relative "../lib/discourse_dumbcourse/push_sender"
 require_relative "../lib/discourse_dumbcourse/pairing"
 require_relative "../lib/discourse_dumbcourse/legacy_redirect"
+require_relative "../lib/discourse_dumbcourse/palette"
+require_relative "../lib/discourse_dumbcourse/usage"
 
 after_initialize do
   # NOTE: no `enabled_site_setting :dumbcourse_enabled` here. That call is a
@@ -57,9 +59,21 @@ after_initialize do
     ::ApplicationController.prepend_before_action :dumbcourse_redirect_legacy
   end
 
+  # Posts written in Dumbcourse, for its badges: its composer sends
+  # `dumbcourse: true` with a new post.
+  register_post_custom_field_type(DiscourseDumbcourse::Usage::POST_FIELD, :boolean)
+  add_permitted_post_create_param(:dumbcourse)
+  on(:post_created) do |post, opts, _user|
+    if DiscourseDumbcourse.enabled? && opts[:dumbcourse].to_s == "true"
+      DiscourseDumbcourse::Usage.mark_post!(post)
+    end
+  end
+
   # Hook: Notification created
   on(:notification_created) do |notification|
     next unless SiteSetting.dumbcourse_push_enabled
+    # Most people have no device registered: no job for them.
+    next if DiscourseDumbcourse::PushSender.devices(notification.user_id).empty?
 
     Jobs.enqueue_in(2.seconds, :dumbcourse_push_notify, notification_id: notification.id)
   end

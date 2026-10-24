@@ -145,7 +145,11 @@ function whisperNote(p: Post): SafeHtml {
   );
   return html`<div class="whisper">
     ${icon("lock")}<span
-      >${to.length ? "Whisper to " + to.join(", ") : "Whisper to staff"}</span
+      >${to.length
+        ? "Whisper to " + to.join(", ")
+        : p.mod_whisper_admins_only
+          ? "Whisper to admins"
+          : "Whisper to staff"}</span
     >
   </div>`;
 }
@@ -233,6 +237,34 @@ function reactionPills(p: Post, allowed: boolean): SafeHtml {
           aria-label="${r.id}, ${r.count}"
         >
           ${emojiImg(r.id, "emoji rx-e")}<span>${r.count}</span>
+        </button>`
+    )}
+  </div>`;
+}
+
+// A post's reactions as a row rolled out in its footer (touch): the
+// footer's react button builds it, and a pick goes through the same "react"
+// action as the pills above.
+export function reactionRow(p: Post): SafeHtml {
+  const mine = p.current_user_reaction
+    ? p.current_user_reaction.id
+    : p.current_user_used_main_reaction
+      ? mainReaction()
+      : "";
+  return html`<div class="rx-row" data-row role="group" aria-label="React">
+    ${settings.reactions.list.map(
+      (r) =>
+        html`<button
+          type="button"
+          class="rx-pick${r === mine ? " mine" : ""}"
+          data-act="react"
+          data-post="${p.id}"
+          data-reaction="${r}"
+          tabindex="-1"
+          aria-label="${r.replace(/_/g, " ")}"
+          aria-pressed="${r === mine ? "true" : "false"}"
+        >
+          ${emojiImg(r, "emoji")}
         </button>`
     )}
   </div>`;
@@ -330,6 +362,22 @@ export function renderPost(
         </button>`
       : html``;
   const tipBtn = tipButton(p.username, !!moneroAddress(p.user_custom_fields));
+  // The keypad reaches reactions through the post's menu (React…); this is
+  // the footer's way, for touch.
+  const reactBtn =
+    allowed && reactionsOn() && !p.yours && settings.reactions.list.length > 1
+      ? html`<button
+          type="button"
+          class="pa rx-open"
+          data-act="react-row"
+          data-post="${p.id}"
+          tabindex="-1"
+          aria-label="React"
+          aria-expanded="false"
+        >
+          ${icon("smile")}
+        </button>`
+      : html``;
   const label = `Post ${p.post_number} by ${p.username}, ${timeAgo(p.created_at)} ago${like.count ? `, ${like.count} likes` : ""}${p.bookmarked ? ", bookmarked" : ""}`;
 
   const markup = html`<article
@@ -377,7 +425,7 @@ export function renderPost(
     <div class="post-body cooked">${raw(bodyHtml)}${leftover}</div>
     ${reactionPills(p, allowed)}
     <footer class="post-foot">
-      ${likeBtn}${tipBtn}
+      ${likeBtn}${reactBtn}${tipBtn}
       ${p.reply_count
         ? html`<button
             type="button"

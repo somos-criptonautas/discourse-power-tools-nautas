@@ -27,6 +27,7 @@ declare module "virtual:theme" {
     hero_planet: boolean;
     footer_enabled: boolean;
     footer_tagline: string;
+    footer_notice: string;
     footer_links: JtechThemeFooterLink[];
     category_banners: boolean;
     tag_banners: boolean;
@@ -34,6 +35,8 @@ declare module "virtual:theme" {
     header_home_url: string;
     color_mode_toggle: boolean;
     header_color_toggle: boolean;
+    palette_menu: boolean;
+    density_menu: boolean;
     overlay_scrollbar: boolean;
     back_to_top: boolean;
     command_menu: boolean;
@@ -66,8 +69,10 @@ declare module "virtual:theme" {
     post_badges: string;
     image_carousels: boolean;
     sidebar_inboxes: boolean;
+    online_box: boolean;
     reader_mode: boolean;
     qr_code_share: boolean;
+    reaction_rollout: boolean;
   }
 
   export const settings: JtechThemeSettings;

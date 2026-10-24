@@ -25,6 +25,7 @@ import lightbox from "discourse/lib/lightbox";
 import { emojiUrlFor } from "discourse/lib/text";
 import { TextareaAutocompleteHandler } from "discourse/lib/textarea-text-manipulation";
 import userSearch, { validateSearchResult } from "discourse/lib/user-search";
+import { clipboardCopy } from "discourse/lib/utilities";
 import type Site from "discourse/models/site";
 import type AppEventsService from "discourse/services/app-events";
 import type ComposerService from "discourse/services/composer";
@@ -999,15 +1000,13 @@ export default class DisteleplusConversation extends Component<DisteleplusConver
   @action
   copyText(message: DisteleplusMessage) {
     this.closeContextMenu();
-    navigator.clipboard?.writeText(message.raw || "");
+    clipboardCopy(message.raw || "");
   }
 
   @action
   copyLink(message: DisteleplusMessage) {
     this.closeContextMenu();
-    navigator.clipboard?.writeText(
-      `${getAbsoluteURL("/disteleplus")}#m${message.id}`
-    );
+    clipboardCopy(`${getAbsoluteURL("/disteleplus")}#m${message.id}`);
   }
 
   @action

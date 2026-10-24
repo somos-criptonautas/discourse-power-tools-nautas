@@ -10,15 +10,16 @@ A light version of the forum at `/dumb` for flip phones, KaiOS and old Android b
   - Unread topics open at your first unread post, and Back returns you exactly where you were.
   - Live updates and read tracking.
 - **Doing.** **OK** on a post opens its actions: like or react, reply, quote, bookmark, edit, delete, flag, copy link, every link in the post, hidden text (spoilers and details), and the post's pictures. There's a full-screen composer with mentions, emoji, formatting, uploads, preview and optional spell check.
+- **Reacting on a touch screen.** The smile beside a post's like rolls its reactions out in the post's footer, in a row to swipe through; tap one to react, or the smile again to put them away. On the keypad, React… in the post's actions picks from a grid.
 - **Pictures.** **View picture** opens it full screen; with several, a gallery of thumbnails comes first. **OK** zooms (fit, 2×, 3×), the D-pad moves a zoomed picture around or, at fit, goes to the previous / next picture, `4` / `6` go to the previous / next picture at any zoom, and the right soft key saves a forum upload to the phone.
-- **Your stuff.** Notifications, bookmarks, drafts, messages, profile, search and REQ-PM, with one-press **Call / Text / WhatsApp**.
+- **Your stuff.** Notifications, bookmarks, drafts, messages, profile, search and REQ-PM, with one-press **Call / Text / WhatsApp**. During mod elections, the ballot: pick a candidate and press 1–9 to rank them.
 - **Signing in without typing a password on a keypad.** Approve the phone from another signed-in device, or use an emailed link or code, social logins, or password plus two-factor code. Sign-up, password reset and account activation work here too.
 - **Keys.**
   - Anywhere: `*` menu, `#` search, `0` help, `1`/`7` top and bottom, `2`/`8` page up and down, `4` back.
   - In a topic: `3` reply, `5` like, `9` jump to post.
   - Soft keys that a phone names oddly can be taught under Preferences → Phone keys.
   - In the Android app on a keypad phone, the app draws the soft-key bar and handles the soft keys itself. Preferences → Phone keys → Detect soft keys finds keys it doesn't know.
-- **Looks.** Light, dark or automatic; text size; compact layout; avatars on or off; data saver. All chosen per phone.
+- **Looks.** Light, dark or automatic; text size; compact layout; avatars on or off; data saver. All chosen per phone. The colours are the forum's: the palettes chosen on the full site (Preferences → Interface, or the sidebar's palette button), else the forum theme's own, black and white with JTech. Browsers too old for CSS custom properties (Chrome before 49) always get JTech's black and white.
 - **Old phones find it by themselves.** Browsers that can't run the full forum are sent to the matching Dumbcourse page, including links in emails. Search engines never are (`dumbcourse_redirect_legacy_browsers`).
 - **Safe by construction.**
   - Strict Content-Security-Policy and no framing.
@@ -34,7 +35,7 @@ Admin → Plugins → Jtech Tools → **Dumbcourse**. The full text of each sett
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| `dumbcourse_enabled` | `true` | Serve the Dumbcourse single-page app at the base path below. |
+| `dumbcourse_enabled` | `false` | Serve the Dumbcourse single-page app at the base path below. |
 | `dumbcourse_base_path` | `dumb` | First URL segment the app is served from, without slashes — "dumb" serves it at /dumb. |
 | `dumbcourse_default_theme` | `auto` | Colour scheme applied the first time someone opens the app. |
 | `dumbcourse_default_view` | `latest` | Topic list shown when someone opens the app at its root URL. |

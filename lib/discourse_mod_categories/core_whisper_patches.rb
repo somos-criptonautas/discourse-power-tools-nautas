@@ -19,9 +19,28 @@ module DiscourseModCategories
   #     and the topic stats broadcast is skipped.
   #   * Post#create_reply_relationship_with — a whisper reply doesn't raise
   #     its parent's public reply_count.
+  #   * Topic#reset_bumped_at — the bump goes back to the last public post,
+  #     never a whisper.
+  #   * Post#excerpt_for_topic, Post#sync_category_description — a whisper
+  #     never writes its topic's public excerpt, or the description of the
+  #     category whose topic it heads (one can still head a topic it was
+  #     moved into before such moves were refused, and an edit or rebake
+  #     would write them again).
   module PostWhisperPatch
     def whisper?
       super || DiscourseModCategories::Whisper.whisper?(self)
+    end
+
+    def excerpt_for_topic
+      return nil if DiscourseModCategories::Whisper.whisper?(self)
+      super
+    end
+
+    # The category comes back unchanged, as core's does when there's
+    # nothing to change: PostRevisor refuses the edit on nil.
+    def sync_category_description(category = nil)
+      return super unless DiscourseModCategories::Whisper.whisper?(self)
+      category || ::Category.find_by(topic_id: topic_id)
     end
 
     # Whisper.prime! remembers a post's whisper fields; changing or
@@ -73,6 +92,18 @@ module DiscourseModCategories
     end
   end
 
+  # A topic's picture (its card and list thumbnail) comes from its first
+  # post's image. A whisper at the head of a topic, moved there before such
+  # moves were refused, gives it none.
+  module CookedPostProcessorWhisperPatch
+    def update_post_image
+      return super unless @post.is_first_post? && DiscourseModCategories::Whisper.whisper?(@post)
+      topic = @post.topic
+      topic.update_column(:image_upload_id, nil) if topic&.image_upload_id
+      nil
+    end
+  end
+
   # Class-level Post scopes core uses as its "posts this viewer may see"
   # filters. Post.secured(guardian) backs /posts/:id/replies, reply history,
   # PostAlerter's collapsed "N replies" counts, bookmarks, drafts, the user
@@ -118,6 +149,27 @@ module DiscourseModCategories
     end
   end
 
+  # Topic#reset_bumped_at (the last public post deleted or hidden by flags,
+  # "reset bump date") moves the bump to the topic's last regular post, which
+  # can be a whisper: the topic jumped up the list for everyone over a post
+  # most of them can't see. The last post that isn't a whisper sets it, and a
+  # whisper staff pick to reset the bump to hands it to the post before it.
+  module TopicWhisperPatch
+    def reset_bumped_at(post_or_post_id = nil)
+      if !post_or_post_id
+        return super(DiscourseModCategories::Whisper.last_bumping_post(self) || first_post)
+      end
+
+      post = post_or_post_id.is_a?(::Post) ? post_or_post_id : ::Post.find_by(id: post_or_post_id)
+      if post && DiscourseModCategories::Whisper.whisper?(post)
+        return(
+          super(DiscourseModCategories::Whisper.last_bumping_post(self, before: post) || first_post)
+        )
+      end
+      super
+    end
+  end
+
   # /posts.json, /posts.rss, /private-posts (and the MCP "latest posts" tool).
   module LatestPostsQueryWhisperPatch
     def public_posts(before_post_id: nil)
@@ -144,6 +196,49 @@ module DiscourseModCategories
     def group_notifying_via_smtp(post)
       return nil if DiscourseModCategories::Whisper.whisper?(post)
       super
+    end
+  end
+
+  # Moving posts bumps the destination topic when its last post is one of
+  # the moved ones, and makes that post the topic's last post. Core skips
+  # only core whispers when it picks that post, so a moved whisper bumped
+  # the topic for everyone and showed its author as the last poster. The
+  # scope narrows core's query to skip ours too; all_queries is what
+  # reaches the destination.ordered_posts association.
+  #
+  # With "keep the original" core copies each reply with Post#dup, which
+  # leaves custom fields behind, so a whisper's copy came out public; the
+  # copies take the whisper fields once every post is moved, before anything
+  # else reads them. Core also counts each moved reply towards the moved
+  # post it answers, so a moved whisper added a reply to a public post.
+  #
+  # A whisper moved first into a new topic, or ahead of an existing topic's
+  # first post in chronological order, became that topic's first post: its
+  # text went into the public excerpt, and its author became the topic's
+  # owner. The move is refused and rolled back instead, with an error the
+  # move-posts endpoint shows as it is (as it does its own refusals).
+  module PostMoverWhisperPatch
+    private
+
+    def move_each_post
+      super
+      DiscourseModCategories::Whisper.copy_to_moved_copies!
+      first_post_ids = ::Post.where(topic_id: destination_topic.id, post_number: 1).pluck(:id)
+      if DiscourseModCategories::Whisper.whisper_post_ids(first_post_ids).any?
+        raise ::ActiveRecord::RecordNotSaved.new(
+                I18n.t("discourse_mod_categories.whisper.move_first_post_not_allowed"),
+              )
+      end
+      whisper_ids = DiscourseModCategories::Whisper.whisper_post_ids(@post_ids_after_move)
+      if whisper_ids.any?
+        DiscourseModCategories::Whisper.posts_moved!(destination_topic, whisper_ids)
+      end
+    end
+
+    def update_last_post_stats
+      ::Post
+        .where("NOT #{DiscourseModCategories::WhisperQueryFilter.is_whisper_sql("posts")}")
+        .scoping(all_queries: true) { super }
     end
   end
 
@@ -200,17 +295,14 @@ module DiscourseModCategories
     def apply_common_filters(builder, user_id, guardian, ignore_private_messages = false)
       super
       viewer = guardian&.user
-      return if viewer&.staff?
+      viewer = nil unless viewer.is_a?(::User) && viewer.id
+      sql = DiscourseModCategories::WhisperQueryFilter.predicate(viewer, "p")
+      return if sql.nil?
 
       if viewer
-        builder.where(
-          "p.id IS NULL OR #{DiscourseModCategories::WhisperQueryFilter.visible_sql("p")}",
-          mw_uid: viewer.id,
-        )
+        builder.where("p.id IS NULL OR #{sql}", mw_uid: viewer.id)
       else
-        builder.where(
-          "p.id IS NULL OR NOT #{DiscourseModCategories::WhisperQueryFilter.is_whisper_sql("p")}",
-        )
+        builder.where("p.id IS NULL OR #{sql}")
       end
     end
   end
@@ -293,6 +385,10 @@ module DiscourseModCategories
   module ReviewableClassWhisperPatch
     def viewable_by(user, order: nil, preload: true)
       result = super
+      # ponytail: moderators included, so a non-staff reply to an admin's
+      # whisper that waits for approval shows in their queue until approved
+      # (the queued post can't carry the admins-only mark yet); check the
+      # payload's reply target here if that matters.
       return result if user.nil? || user.staff?
 
       result.where(<<~SQL)
@@ -380,13 +476,16 @@ module DiscourseModCategories
   def self.apply_core_whisper_patches!
     ::Post.prepend(PostWhisperPatch)
     ::PostCreator.prepend(PostCreatorWhisperPatch)
+    ::CookedPostProcessor.prepend(CookedPostProcessorWhisperPatch)
     ::Post.singleton_class.prepend(PostClassWhisperPatch)
     ::Topic.singleton_class.prepend(TopicClassWhisperPatch)
+    ::Topic.prepend(TopicWhisperPatch)
     ::Oneboxer.singleton_class.prepend(OneboxerWhisperPatch)
     ::UserNotifications.singleton_class.prepend(UserNotificationsWhisperPatch)
     ::LatestPostsQuery.prepend(LatestPostsQueryWhisperPatch)
     ::Guardian.prepend(GuardianWhisperScopePatch)
     ::PostAlerter.prepend(PostAlerterWhisperPatch)
+    ::PostMover.prepend(PostMoverWhisperPatch)
     ::TopicView.prepend(TopicViewWhisperPatch)
     ::UserSummary.prepend(UserSummaryWhisperPatch)
     ::UserAction.singleton_class.prepend(UserActionClassWhisperPatch)

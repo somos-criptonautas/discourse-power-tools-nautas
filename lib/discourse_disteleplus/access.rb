@@ -3,9 +3,7 @@
 module DiscourseDisteleplus
   module Access
     def self.allowed_group_ids
-      ids = SiteSetting.disteleplus_allowed_groups_map
-      ids = SiteSetting.disteleplus_allowed_groups.to_s.split("|").map(&:to_i) if ids.blank?
-      ids.map(&:to_i).reject(&:zero?).uniq
+      SiteSetting.disteleplus_allowed_groups_map.reject(&:zero?).uniq
     end
 
     def self.allowed?(user)
@@ -37,8 +35,12 @@ module DiscourseDisteleplus
       message.user_id == user.id || moderator?(user)
     end
 
+    # Unlike editing (a bot can't edit somebody else's Telegram message), a
+    # message written on Telegram can be deleted here: the bot deletes it
+    # there too. Its author, as matched to a forum account, or staff.
     def self.can_delete?(user, message)
-      can_edit?(user, message)
+      return false unless allowed?(user) && message && !message.deleted?
+      message.user_id == user.id || moderator?(user)
     end
   end
 end

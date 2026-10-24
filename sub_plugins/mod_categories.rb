@@ -9,6 +9,7 @@ require_relative "../lib/discourse_mod_categories/core_whisper_patches"
 require_relative "../lib/discourse_mod_categories/whisper_query_filter"
 require_relative "../lib/discourse_mod_categories/whisper_unread"
 require_relative "../lib/discourse_mod_categories/staff_notifier"
+require_relative "../lib/discourse_mod_categories/note_thread"
 require_relative "../lib/discourse_mod_categories/user_action_whisper_filter"
 require_relative "../lib/discourse_mod_categories/search_indexer_extension"
 require_relative "../lib/discourse_mod_categories/search_extension"
@@ -303,6 +304,10 @@ module ::DiscourseModCategories
   # gains visibility and a user who loses it loses visibility — same shape
   # as group targets.
   POST_WHISPER_TARGET_BADGES_FIELD = "mod_whisper_target_badge_ids"
+  # Marks a whisper an admin wrote (and anything answering one): moderators
+  # see it only when its targets include them, like anybody else. Presence
+  # is the mark.
+  POST_WHISPER_ADMINS_ONLY_FIELD = "mod_whisper_admins_only"
   TOPIC_WHISPER_PARTICIPANTS_FIELD = "mod_whisper_participant_ids"
   # JSON array of `{user_id, username, name, avatar_template, viewed_at}`
   # entries — staff who have rendered the mod-note panel on the topic.
@@ -490,13 +495,14 @@ after_initialize do
   end
 
   # The private moderator note is only ever serialized to staff, so a
-  # regular user's topic JSON never contains it.
+  # regular user's topic JSON never contains it; an admin's, to admins.
   add_to_serializer(
     :topic_view,
     :mod_topic_private_note,
     include_condition: -> do
       scope.is_staff? && DiscourseModCategories.enabled? &&
-        SiteSetting.mod_topic_private_notes_enabled
+        SiteSetting.mod_topic_private_notes_enabled &&
+        !DiscourseModCategories::NoteThread.hidden_from?(object.topic, scope.user)
     end,
   ) { object.topic.custom_fields[DiscourseModCategories::TOPIC_PRIVATE_NOTE_FIELD] }
   add_to_serializer(
@@ -504,7 +510,8 @@ after_initialize do
     :mod_topic_private_note_position,
     include_condition: -> do
       scope.is_staff? && DiscourseModCategories.enabled? &&
-        SiteSetting.mod_topic_private_notes_enabled
+        SiteSetting.mod_topic_private_notes_enabled &&
+        !DiscourseModCategories::NoteThread.hidden_from?(object.topic, scope.user)
     end,
   ) { object.topic.custom_fields[DiscourseModCategories::TOPIC_PRIVATE_NOTE_POSITION_FIELD] }
   # Who set the note — staff only, so the note can be shown like a post.
@@ -513,19 +520,17 @@ after_initialize do
     :mod_topic_private_note_author,
     include_condition: -> do
       scope.is_staff? && DiscourseModCategories.enabled? &&
-        SiteSetting.mod_topic_private_notes_enabled
+        SiteSetting.mod_topic_private_notes_enabled &&
+        !DiscourseModCategories::NoteThread.hidden_from?(object.topic, scope.user)
     end,
-  ) do
-    user_id = object.topic.custom_fields[DiscourseModCategories::TOPIC_PRIVATE_NOTE_USER_FIELD]
-    user = user_id && User.find_by(id: user_id)
-    { username: user.username, name: user.name, avatar_template: user.avatar_template } if user
-  end
+  ) { DiscourseModCategories::NoteThread.author(object.topic) }
   add_to_serializer(
     :topic_view,
     :mod_topic_private_note_created_at,
     include_condition: -> do
       scope.is_staff? && DiscourseModCategories.enabled? &&
-        SiteSetting.mod_topic_private_notes_enabled
+        SiteSetting.mod_topic_private_notes_enabled &&
+        !DiscourseModCategories::NoteThread.hidden_from?(object.topic, scope.user)
     end,
   ) { object.topic.custom_fields[DiscourseModCategories::TOPIC_PRIVATE_NOTE_CREATED_AT_FIELD] }
   # The thread of staff replies to the note.
@@ -534,27 +539,10 @@ after_initialize do
     :mod_topic_private_note_replies,
     include_condition: -> do
       scope.is_staff? && DiscourseModCategories.enabled? &&
-        SiteSetting.mod_topic_private_notes_enabled
+        SiteSetting.mod_topic_private_notes_enabled &&
+        !DiscourseModCategories::NoteThread.hidden_from?(object.topic, scope.user)
     end,
-  ) do
-    raw = object.topic.custom_fields[DiscourseModCategories::TOPIC_PRIVATE_NOTE_REPLIES_FIELD]
-    entries = raw.is_a?(Array) ? raw : []
-    entries.map do |entry|
-      author = entry["user_id"] && User.find_by(id: entry["user_id"])
-      {
-        id: DiscourseModCategories.note_reply_id(entry),
-        raw: entry["raw"].to_s,
-        created_at: entry["created_at"],
-        author:
-          author &&
-            {
-              username: author.username,
-              name: author.name,
-              avatar_template: author.avatar_template,
-            },
-      }
-    end
-  end
+  ) { DiscourseModCategories::NoteThread.replies(object.topic) }
 
   # Staff who have rendered the mod-note panel on this topic — used by the
   # "👁 Viewed by N" pill at the bottom of the panel. Newest viewer last,
@@ -564,19 +552,13 @@ after_initialize do
     :mod_topic_note_viewers,
     include_condition: -> do
       scope.is_staff? && DiscourseModCategories.enabled? &&
-        SiteSetting.mod_note_view_tracking_enabled
+        SiteSetting.mod_note_view_tracking_enabled &&
+        !DiscourseModCategories::NoteThread.hidden_from?(object.topic, scope.user)
     end,
   ) do
-    raw = object.topic.custom_fields[DiscourseModCategories::TOPIC_NOTE_VIEWERS_FIELD]
-    Array(raw).map do |entry|
-      {
-        user_id: entry["user_id"],
-        username: entry["username"],
-        name: entry["name"],
-        avatar_template: entry["avatar_template"],
-        viewed_at: entry["viewed_at"],
-      }
-    end
+    DiscourseModCategories::NoteThread.viewers(
+      object.topic.custom_fields[DiscourseModCategories::TOPIC_NOTE_VIEWERS_FIELD],
+    )
   end
 
   # Unread moderator-note count, for the staff member's user-menu tab. Derived
@@ -590,10 +572,7 @@ after_initialize do
   ) do
     next 0 unless object.staff?
 
-    ::Notification
-      .where(user_id: object.id, notification_type: ::Notification.types[:custom], read: false)
-      .where("data LIKE ?", "%\"mod_note\":true%")
-      .count
+    DiscourseModCategories::StaffNotifier.mod_notes_for(object.id).where(read: false).count
   end
 
   # First-post checklist: the single checklist the current user most needs
@@ -685,6 +664,7 @@ after_initialize do
   register_post_custom_field_type(DiscourseModCategories::POST_WHISPER_TARGETS_FIELD, :json)
   register_post_custom_field_type(DiscourseModCategories::POST_WHISPER_TARGET_GROUPS_FIELD, :json)
   register_post_custom_field_type(DiscourseModCategories::POST_WHISPER_TARGET_BADGES_FIELD, :json)
+  register_post_custom_field_type(DiscourseModCategories::POST_WHISPER_ADMINS_ONLY_FIELD, :boolean)
   register_topic_custom_field_type(DiscourseModCategories::TOPIC_WHISPER_PARTICIPANTS_FIELD, :json)
   add_permitted_post_create_param(DiscourseModCategories::POST_WHISPER_TARGETS_FIELD, :array)
   add_permitted_post_create_param(DiscourseModCategories::POST_WHISPER_TARGET_GROUPS_FIELD, :array)
@@ -749,6 +729,7 @@ after_initialize do
     next unless DiscourseModCategories::Whisper.whisper?(post)
 
     DiscourseModCategories::Whisper.refresh_topic_counters(topic)
+    DiscourseModCategories::WhisperUnread.skip_new_whisper!(post)
     if post.reply_to_post_number.present?
       ::Topic
         .where(id: topic.id)
@@ -866,6 +847,11 @@ after_initialize do
 
   add_to_serializer(:post, :mod_whisper_author_is_staff, include_condition: whisper_only) do
     !!object.user&.staff?
+  end
+
+  # Moderators outside its targets don't see it: its banner says admins
+  add_to_serializer(:post, :mod_whisper_admins_only, include_condition: whisper_only) do
+    DiscourseModCategories::Whisper.admins_only?(object)
   end
 
   add_to_serializer(
@@ -1241,17 +1227,31 @@ after_initialize do
             topic.save_custom_fields(true)
           end
           DiscourseModCategories::Whisper.refresh_topic_counters(topic)
+          # It bumped the topic while it was public (core copies the post's
+          # created_at into bumped_at, to the microsecond); the bump goes
+          # back to the post before it that would have had it (a later reply
+          # here was posted without a bump, or the bump would be its). Read
+          # under the topic's lock: a reply posted meanwhile has bumped it.
+          topic.with_lock do
+            if topic.bumped_at == post.created_at
+              topic.reset_bumped_at(
+                DiscourseModCategories::Whisper.last_bumping_post(topic, before: post) ||
+                  topic.first_post,
+              )
+            end
+          end
         end
         # Other posts may carry a baked link preview of this post.
         DiscourseModCategories::Whisper.rebake_linking_posts(post)
         # The Telegram bridge may already have mirrored it while public.
-        if defined?(::DiscourseDisteleplus)
-          ::Jobs.enqueue(:disteleplus_retract_whisper, post_id: post.id)
-        end
+        ::Jobs.enqueue(:disteleplus_retract_whisper, post_id: post.id)
       else
         ::SearchIndexer.index(post, force: true)
         ::TopicLink.extract_from(post)
         ::Topic.reset_highest(post.topic_id) if post.topic_id
+        # The bump stays where it is, as core leaves it when one of its own
+        # whispers is made public: whether this post would have bumped the
+        # topic (posted without a bump, say) isn't known any more.
       end
       DiscourseModCategories::Whisper.refresh_reply_counts(
         ::PostReply.where(reply_post_id: post.id).pluck(:post_id),
@@ -1343,59 +1343,27 @@ after_initialize do
         # type filter needs to be applied here. Same response envelope
         # the user-notifications template binds against.
         def render_type_filtered_index(type_sym)
-          user = mod_notifications_user
-          limit = 60
-          offset = params[:offset].to_i
-          type_id = ::Notification.types[type_sym]
-
-          scope =
-            ::Notification
-              .where(user_id: user.id, notification_type: type_id)
-              .visible
-              .includes(:topic)
-              .order(created_at: :desc)
-
-          scope = scope.where(read: true) if params[:filter] == "read"
-          scope = scope.where(read: false) if params[:filter] == "unread"
-
-          total = scope.dup.count
-          notifications = scope.offset(offset).limit(limit)
-          notifications =
-            ::Notification.filter_inaccessible_topic_notifications(
-              current_user.guardian,
-              notifications,
+          render_filtered_index(type_sym.to_s) do |user|
+            ::Notification.where(
+              user_id: user.id,
+              notification_type: ::Notification.types[type_sym],
             )
-          notifications = ::Notification.filter_disabled_badge_notifications(notifications)
-          notifications = ::Notification.populate_acting_user(notifications)
-
-          render_json_dump(
-            notifications: serialize_data(notifications, ::NotificationSerializer),
-            total_rows_notifications: total,
-            seen_notification_id: user.seen_notification_id,
-            load_more_notifications:
-              notifications_path(
-                username: user.username,
-                offset: offset + limit,
-                limit: limit,
-                filter: params[:filter],
-                type: type_sym.to_s,
-              ),
-          )
+          end
         end
 
         def render_mod_notes_index
+          render_filtered_index("mod_notes") do |user|
+            DiscourseModCategories::StaffNotifier.mod_notes_for(user.id)
+          end
+        end
+
+        # The bell's list, narrowed to the notifications the block picks for
+        # the user (the one whose notifications are shown).
+        def render_filtered_index(type)
           user = mod_notifications_user
           limit = 60
           offset = params[:offset].to_i
-
-          scope =
-            ::Notification
-              .where(user_id: user.id)
-              .visible
-              .where(notification_type: ::Notification.types[:custom])
-              .where("data LIKE ?", "%\"mod_note\":true%")
-              .includes(:topic)
-              .order(created_at: :desc)
+          scope = yield(user).visible.includes(:topic).order(created_at: :desc)
 
           scope = scope.where(read: true) if params[:filter] == "read"
           scope = scope.where(read: false) if params[:filter] == "unread"
@@ -1420,7 +1388,7 @@ after_initialize do
                 offset: offset + limit,
                 limit: limit,
                 filter: params[:filter],
-                type: "mod_notes",
+                type: type,
               ),
           )
         end

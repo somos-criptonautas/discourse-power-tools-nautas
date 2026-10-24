@@ -1,3 +1,5 @@
+@use "lib/viewport";
+
 // Post chrome: author block, post menu, reactions, solved answer, topic events.
 :root {
   --d-post-control-text-color: var(--jt-text-muted);
@@ -113,6 +115,94 @@
         color: var(--jt-text);
       }
     }
+
+    // On phones core's box of post infos (the reply-to tab, the date and
+    // the little indicators) sits at the top right, by the name. Since the
+    // tab became a pill holding a name it was too big for that corner: it
+    // took the middle of the row, the name and the title were squeezed and
+    // cut short, and the date was centred on both lines. Here the corner
+    // holds the tab, compact, on the name's line, with the date under it on
+    // the title's; side by side when the header is wide enough. When room
+    // runs out the tab's name shortens, and in a narrow header only its
+    // arrow and picture stay. The poster's name keeps its full width.
+    @include viewport.until(sm) {
+      container: jt-post-meta / inline-size;
+      align-items: flex-start;
+
+      .names {
+        flex: 1 1 0;
+        min-width: min-content;
+
+        // A long title wraps inside its pill rather than holding the name
+        // column wide
+        .user-title {
+          white-space: normal;
+        }
+      }
+
+      .post-infos {
+        flex: 0 1 auto;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        width: min-content;
+        min-width: 0;
+        gap: var(--space-1) var(--space-2);
+
+        > * {
+          flex: none;
+        }
+
+        .reply-to-tab {
+          flex: 0 1 auto;
+          min-width: 0;
+          gap: 0.3em;
+          margin: 0;
+          padding: 0.05em 0.5em 0.05em 0.35em;
+          font-size: var(--jt-text-2xs);
+          line-height: 1.6;
+
+          .avatar {
+            width: 14px;
+            height: 14px;
+          }
+
+          // The name, which core hides on phones: who a post answers is
+          // the point of the tab
+          span {
+            display: inline;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+
+        // Core centres the unread dot (placed absolutely, in the margin) on
+        // this box, which can be two lines now: on the date's line
+        .read-state {
+          display: flex;
+          align-self: flex-end;
+          align-items: center;
+          height: calc(var(--jt-text-sm) * 1.5);
+        }
+      }
+
+      @container jt-post-meta (width >= 24rem) {
+        .post-infos {
+          width: auto;
+        }
+      }
+
+      @container jt-post-meta (width < 17rem) {
+        .post-infos .reply-to-tab {
+          padding-inline: 0.35em;
+
+          span {
+            display: none;
+          }
+        }
+      }
+    }
   }
 }
 
@@ -142,76 +232,484 @@ nav.post-controls {
   }
 }
 
+// ── Expanded replies ──────────────────────────────────────
+// The post being answered (the reply-to tab) and a post's replies (the
+// Replies button) open as the quote card (jt-post-blocks): who wrote it on
+// one line, with the way to it and the chevron that shuts the card at its
+// end, and the text under it, from the same edge. Core places these with
+// offsets and translations made for its thread lines, which left the
+// chevron a row of its own, the jump link under the text and the avatar
+// against the card's edge; all of that is set here, as deep as core's
+// selectors go.
+$jt-reply-line: 1.75rem; // the name's line: the chevron's height
+
+.topic-post section.embedded-posts {
+  position: relative;
+  box-sizing: border-box;
+
+  // all of the row it opens in, which (above the post) is a flex row that
+  // would otherwise fit it to its text
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: var(--jt-surface-sunken);
+  border: 1px solid var(--jt-border);
+  border-radius: var(--jt-radius-md);
+
+  &.top {
+    margin-bottom: var(--space-3);
+  }
+
+  &.bottom {
+    margin: var(--space-2) 0 var(--space-4);
+  }
+
+  .reply {
+    display: block;
+    position: static;
+    margin: 0;
+    padding: 0.7rem $jt-block-pad 0.75rem;
+
+    + .reply {
+      border-top: 1px solid var(--jt-border);
+    }
+  }
+
+  .reply .row {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0;
+    border: 0;
+
+    // core's thread lines: the card does their job
+    &::before,
+    .topic-body::before {
+      display: none;
+    }
+
+    // the name line's height (core's), its picture in the middle of it
+    .topic-avatar {
+      position: static;
+      display: flex;
+      align-items: center;
+      width: auto;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      border: 0;
+
+      // blocks, not a picture on a line of text
+      .post-avatar,
+      .main-avatar,
+      .avatar {
+        display: block;
+      }
+
+      .avatar {
+        width: 24px;
+        height: 24px;
+      }
+
+      .avatar-flair {
+        display: none;
+      }
+    }
+
+    // the name's line and the text are the row's own cells
+    .topic-body {
+      display: contents;
+    }
+
+    .topic-body .topic-meta-data {
+      position: static;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      min-width: 0;
+      height: $jt-reply-line;
+      margin: 0;
+      padding: 0;
+
+      // one line height for the name and the link, so they share a baseline
+      line-height: 1.3;
+
+      .names {
+        display: flex;
+        flex: 1 1 auto;
+        align-items: center;
+        min-width: 0;
+        margin: 0;
+        overflow: hidden;
+        font-size: var(--jt-text-sm);
+        white-space: nowrap;
+
+        .username a {
+          font-weight: 600;
+          color: var(--jt-text);
+        }
+
+        .user-title {
+          display: none;
+        }
+      }
+
+      .post-link-arrow {
+        position: static;
+        display: flex;
+        flex: none;
+        margin-inline-start: auto;
+
+        .post-info.arrow {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3em;
+          margin: 0;
+          padding: 0;
+          font-size: var(--jt-text-sm);
+          line-height: inherit;
+          color: var(--jt-text-muted);
+
+          .d-icon {
+            margin: 0;
+            color: inherit;
+          }
+
+          &:hover,
+          &:focus-visible {
+            color: var(--jt-text);
+          }
+        }
+      }
+    }
+
+    .topic-body .cooked {
+      grid-column: 1 / -1;
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+
+      // what's embedded expects a post's width
+      overflow: hidden;
+
+      > :first-child {
+        margin-top: 0;
+      }
+
+      // the last of the text, before core's empty selection barrier
+      > :last-child,
+      > :has(+ .cooked-selection-barrier) {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  // The first one's line ends before the chevron in the card's corner
+  .reply:first-of-type .row .topic-body .topic-meta-data {
+    margin-inline-end: $jt-reply-line;
+  }
+
+  .btn.post__collapse-button {
+    position: absolute;
+    top: 0.7rem;
+
+    // its icon's edge on the text's
+    inset-inline-end: calc(#{$jt-block-pad} - 0.475rem);
+    left: auto;
+    bottom: auto;
+    z-index: 1;
+    width: $jt-reply-line;
+    height: $jt-reply-line;
+    margin: 0;
+    padding: 0;
+    transform: none;
+    background: transparent;
+    border: 0;
+    border-radius: var(--jt-radius-control);
+
+    .d-icon {
+      color: var(--jt-text-subtle);
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: var(--jt-hover);
+
+      .d-icon {
+        color: var(--jt-text);
+      }
+    }
+  }
+
+  .load-more-replies {
+    position: static;
+    display: block;
+    margin: 0 $jt-block-pad 0.75rem;
+    transform: none;
+  }
+}
+
 // ── Reactions ─────────────────────────────────────────────
 // The plugin paints hover/used states with --love-low / --primary-low, which
 // come out as a mid-grey slab in this palette. Re-point them in its container.
-.discourse-reactions-actions {
-  --love: var(--jt-text);
-  --love-low: var(--jt-hover);
-  --primary-low: var(--jt-hover);
-  --primary-low-mid: var(--jt-text-muted);
-}
-
-.discourse-reactions-counter {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45em;
-  height: 2rem;
-  padding: 0 0.7em 0 0.45em;
-  background: var(--jt-fill);
-  border: 1px solid var(--jt-border);
-  border-radius: var(--jt-radius-control); // as Me too beside it
-  transition:
-    border-color var(--jt-motion),
-    background-color var(--jt-motion);
-
-  &:hover {
-    background: var(--jt-hover);
-    border-color: var(--jt-border-strong);
+// Only in the theme's own look: under a Discourse palette (jt-vanilla) the
+// plugin's picker, counter and list are stock.
+html:not(.jt-vanilla) {
+  .discourse-reactions-actions {
+    --love: var(--jt-text);
+    --love-low: var(--jt-hover);
+    --primary-low: var(--jt-hover);
+    --primary-low-mid: var(--jt-text-muted);
   }
 
-  .reactions-counter {
-    font-size: var(--jt-text-sm);
-    font-weight: 500;
-    color: var(--jt-text);
-    font-variant-numeric: tabular-nums;
-  }
-}
-
-.discourse-reactions-list {
-  .reactions .discourse-reactions-list-emoji {
-    margin-right: -0.3em;
-    padding: 1px;
-    background: var(--jt-surface-raised);
-    box-shadow: 0 0 0 1.5px var(--jt-surface);
-    border-radius: 50%;
-  }
-}
-
-.discourse-reactions-actions.has-reacted .discourse-reactions-counter {
-  border-color: var(--jt-text-subtle);
-}
-
-.discourse-reactions-picker .discourse-reactions-picker-container {
-  background: var(--jt-surface-raised);
-  border: 1px solid var(--jt-border);
-  border-radius: var(--jt-radius-lg);
-  box-shadow: var(--jt-shadow-menu);
-
-  .pickable-reaction {
-    border-radius: var(--jt-radius-control);
+  .discourse-reactions-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    height: 2rem;
+    padding: 0 0.7em 0 0.45em;
+    background: var(--jt-fill);
+    border: 1px solid var(--jt-border);
+    border-radius: var(--jt-radius-control); // as Me too beside it
     transition:
-      background-color var(--jt-motion),
-      transform var(--jt-motion);
+      border-color var(--jt-motion),
+      background-color var(--jt-motion);
 
     &:hover {
       background: var(--jt-hover);
-      transform: scale(1.12);
+      border-color: var(--jt-border-strong);
     }
 
-    &.is-used {
-      background: var(--d-selected);
+    .reactions-counter {
+      font-size: var(--jt-text-sm);
+      font-weight: 500;
+      color: var(--jt-text);
+      font-variant-numeric: tabular-nums;
     }
+  }
+
+  .discourse-reactions-list {
+    .reactions .discourse-reactions-list-emoji {
+      margin-right: -0.3em;
+      padding: 1px;
+      background: var(--jt-surface-raised);
+      box-shadow: 0 0 0 1.5px var(--jt-surface);
+      border-radius: 50%;
+    }
+  }
+
+  .discourse-reactions-actions.has-reacted .discourse-reactions-counter {
+    border-color: var(--jt-text-subtle);
+  }
+
+  .discourse-reactions-picker .discourse-reactions-picker-container {
+    background: var(--jt-surface-raised);
+    border: 1px solid var(--jt-border);
+    border-radius: var(--jt-radius-lg);
+    box-shadow: var(--jt-shadow-menu);
+
+    .pickable-reaction {
+      border-radius: var(--jt-radius-control);
+      transition:
+        background-color var(--jt-motion),
+        transform var(--jt-motion);
+
+      &:hover {
+        background: var(--jt-hover);
+        transform: scale(1.12);
+      }
+
+      &.is-used {
+        background: var(--d-selected);
+      }
+    }
+  }
+}
+
+// ── Reactions as a row (reaction_rollout) ─────────────────
+// The picker leaves its box over the post and opens in the post's menu, a
+// row rolling out to the left of the heart: in the row of buttons, so the
+// space it takes pushes what's beside it along rather than covering it. It
+// takes the room there is in whole reactions and scrolls the rest.
+// api-initializers/jt-reaction-rollout slides it open to that width and
+// shut again (a copy, .jt-rx-ghost, since the plugin removes the row the
+// moment it closes) and glides the wheel; nothing runs while it sits. Not
+// under a Discourse palette (jt-vanilla): the plugin's own picker there.
+html.jt-reaction-rollout:not(.jt-vanilla) {
+  // a reaction's cell, and the row's inset around the cells: the hover
+  // sits inside the row, its corners following the row's
+  --jt-rx-cell: 2rem;
+  --jt-rx-inset: 2px;
+
+  // Flex all the way down to the row, so each box can narrow below its
+  // content: a block (the plugin's shim, on computers) sizes an inline box
+  // in it to the content's full width whatever min-width says.
+  .post-controls .discourse-reactions-actions-button-shim,
+  .post-controls .discourse-reactions-actions {
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    min-width: 0;
+  }
+
+  // one line: the row narrows and scrolls rather than push the buttons
+  // onto a line of their own, also while it slides shut
+  .post-controls:has(.discourse-reactions-picker.is-expanded, .jt-rx-ghost)
+    .actions {
+    flex-wrap: nowrap;
+    min-width: 0;
+
+    > :not(.discourse-reactions-actions-button-shim) {
+      flex-shrink: 0;
+    }
+  }
+
+  // The picker is the row's frame; the row inside it scrolls and fades at
+  // an edge with more to scroll to, the frame staying crisp
+  .post-controls .discourse-reactions-picker {
+    position: static;
+    display: flex;
+    flex: 0 1 auto;
+    width: auto;
+    min-width: 0;
+    margin: 0 var(--space-1) 0 0;
+    padding: 0;
+    overflow: hidden;
+    visibility: visible;
+    background: var(--jt-fill);
+    border: 1px solid var(--jt-border);
+    border-radius: var(--jt-radius-control);
+  }
+
+  .discourse-reactions-picker .discourse-reactions-picker-container {
+    --jt-rx-end: var(--jt-rx-inset);
+    display: flex;
+    flex: 0 1 auto;
+    gap: 0;
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: calc(
+      var(--jt-rx-count, 7) * var(--jt-rx-cell) + var(--jt-rx-inset) +
+        var(--jt-rx-end)
+    );
+    margin: 0;
+    padding: var(--jt-rx-inset) var(--jt-rx-end) var(--jt-rx-inset)
+      var(--jt-rx-inset);
+    overflow: auto hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    // more to scroll to on a side: that edge fades
+    &[data-jt-more="end"] {
+      mask-image: linear-gradient(to left, transparent, #000 1rem);
+    }
+
+    &[data-jt-more="start"] {
+      mask-image: linear-gradient(to right, transparent, #000 1rem);
+    }
+
+    &[data-jt-more="both"] {
+      mask-image: linear-gradient(
+        to right,
+        transparent,
+        #000 1rem calc(100% - 1rem),
+        transparent
+      );
+    }
+
+    // the copy that slides shut: seen, never used
+    &.jt-rx-ghost {
+      pointer-events: none;
+    }
+
+    .pickable-reaction {
+      flex: none;
+      justify-content: center;
+      width: var(--jt-rx-cell);
+      height: var(--jt-rx-cell);
+      margin: 0 !important;
+      padding: 0 !important;
+      border: 0 !important;
+      border-radius: calc(var(--jt-radius-control) - var(--jt-rx-inset) - 1px);
+
+      .emoji,
+      .d-icon {
+        width: 1.25em;
+        height: 1.25em;
+        transition: transform var(--jt-motion);
+      }
+
+      // the emoji grows, not its button, which the row would cut off
+      &:hover,
+      &.can-undo:hover {
+        transform: none;
+      }
+
+      // only under a mouse: a tap leaves :hover behind on whatever ends up
+      // under the finger once the row has opened
+      @media (hover: hover) {
+        &:hover,
+        &.can-undo:hover {
+          background: var(--jt-hover) !important;
+
+          .emoji {
+            transform: scale(1.15);
+          }
+        }
+      }
+
+      @media (hover: none) {
+        &:hover:not(.is-used) {
+          background: none !important;
+        }
+      }
+    }
+
+    .emoji-picker-trigger {
+      flex: none;
+      width: var(--jt-rx-cell);
+      height: var(--jt-rx-cell);
+    }
+  }
+
+  // Phones: while the row is open everything else in the menu steps aside
+  // but the heart, the button that opened it and Reply, so it gets the
+  // menu's width. They're back when it shuts.
+  @include viewport.until(sm) {
+    .post-controls:has(.discourse-reactions-picker.is-expanded, .jt-rx-ghost) {
+      .reactions-actions-summary,
+      .show-replies,
+      .actions
+        > :not(
+          .discourse-reactions-actions-button-shim,
+          .post-action-menu__jt-reaction-rollout,
+          .post-action-menu__reply
+        ) {
+        display: none;
+      }
+    }
+  }
+}
+
+// The button that opens the row, for screens without a pointer to rest on
+// the heart, and only with the row.
+.post-action-menu__jt-reaction-rollout {
+  @media (hover: hover) {
+    display: none !important;
+  }
+
+  html.jt-vanilla & {
+    display: none !important;
   }
 }
 
@@ -263,17 +761,52 @@ nav.post-controls {
 // Where the post buttons don't fit beside them they drop to a second line
 // (still on the right) rather than run past the post's edge. Phones keep the
 // plugin's own row.
-@media (width >= 64rem) {
+@include viewport.from(lg) {
+  // top: core's .post-menu-area margin, so both start on the same line. The
+  // pill is shorter than the menu's buttons (39px: 8px padding, a line, 1px
+  // borders), so the row is their height and centres it, or it sat 5px high.
   .post__contents > .solved-shared-issue-row {
     float: left;
-
-    // top: core's .post-menu-area margin, so both start on the same line
+    display: flex;
+    align-items: center;
+    min-height: 39px;
     margin: 20px var(--space-2) 0 0;
   }
 
   .post__contents:has(> .solved-shared-issue-row) nav.post-controls {
     flex-wrap: wrap;
     row-gap: var(--space-2);
+  }
+}
+
+// "Me too" sat as a full bordered button beside the reaction counts. It's a
+// pill like them: the hairline, the counts' size, the icon and the label
+// in the muted grey; pressed (you have it too), in the text colour.
+.post-action-menu__solved-shared-issue.btn {
+  height: auto;
+  min-height: 0;
+  padding: 0.3rem 0.65rem;
+  gap: 0.35rem;
+  font-size: var(--jt-text-sm);
+  color: var(--jt-text-muted);
+  background: transparent;
+  border: 1px solid var(--jt-border);
+  border-radius: var(--jt-radius-pill);
+
+  .d-icon {
+    color: inherit;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: var(--jt-text);
+    background: var(--jt-hover);
+    border-color: var(--jt-border-strong);
+  }
+
+  &.has-shared-issue {
+    color: var(--jt-text);
+    background: var(--jt-active);
   }
 }
 
