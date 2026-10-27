@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Participation badges in Power Tools Nautas" do
+RSpec.describe DiscourseJtechBadges do
   before do
     SiteSetting.jtech_enabled = true
     SiteSetting.dumbcourse_enabled = true
@@ -10,7 +10,7 @@ RSpec.describe "Participation badges in Power Tools Nautas" do
     DiscourseJtechBadges::SWITCHES.each_key { |set| DiscourseJtechBadges.refresh!(set) }
   end
 
-  it "keeps them off until jtech_badges_enabled is on" do
+  it "keeps the participation badges off until jtech_badges_enabled is on" do
     expect(Badge.find_by!(name: "Flip Phone").enabled).to eq(false)
 
     SiteSetting.jtech_badges_enabled = true
