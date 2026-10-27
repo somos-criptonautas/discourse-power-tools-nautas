@@ -60,6 +60,9 @@ es:
     jtech_row_click_theme_ids: IDs de temas donde las filas de la lista de historias se abren desde cualquier punto de la fila (no solo el título y los números) y rebotan al tocarlas. Core solo lo hace en celulares. Vacío (por defecto) lo desactiva.
     jtech_theme_install: Instala y actualiza (en cada rebuild) el tema JTech que viene con el plugin. Nunca lo pone por defecto ni lo ofrece a la comunidad; eso se hace en Personalizar → Temas. Apagado, no instala ni actualiza; al encenderlo instala al momento y recupera un tema que un admin borró.
     jtech_app_icon: Usa el logo de JTech sobre un cuadrado negro como ícono de la app instalada, en lugar del ícono del manifiesto. Apagado, usa el ícono subido. Hay que reinstalar la app para ver el cambio.
+    jtech_trust_level_flair: Muestra el nivel de confianza de cada persona como distintivo del avatar cuando no eligió uno, con el distintivo de su grupo de nivel más alto que tenga (se configura en Grupos). Sube y baja con su nivel. Quien elige otro distintivo, o lo quita, en Preferencias → Cuenta conserva su elección. Al encenderlo se aplica a todo el mundo en unos minutos; al apagarlo quedan los que puso.
+    jtech_badge_thresholds: Baja los escalones más altos de los retos de core a lo que se alcanza acá (me gusta en una respuesta o historia, visitas desde enlaces compartidos, clics en enlaces, Admirado, límite diario de me gusta, rachas de visitas y soluciones). Core repone sus números en cada rebuild, así que esto los vuelve a aplicar. Apagarlo se nota en el próximo rebuild, y los retos cuyos números suben se quitan en la próxima corrida diaria.
+    jtech_badges_enabled: Activa los retos por participar en los módulos de este plugin (elecciones, REQ-PM, anuncios, Dumbcourse, avisos emergentes). Se crean en cada rebuild igual, apagados hasta que esto se encienda; cada grupo necesita además su módulo encendido.
     discourse_no_likes_enabled: Activa los me gusta fantasma. Apagado, los me gusta y reacciones funcionan como en Discourse y nada de abajo tiene efecto.
     no_reactions_category_ids: Categorías donde los me gusta y reacciones son «fantasma». Sin categorías no pasa nada. Las subcategorías se agregan una a una.
     dislike_hide_like_button: Oculta los botones de me gusta y reacción en esas categorías y rechaza los que lleguen por la API. Los existentes se mantienen. Anula {{setting:dislike_allowed_like_groups}}.
@@ -112,14 +115,14 @@ es:
     mod_notify_staff_on_post_approved: 'Avisa al resto del team cuando se aprueba una respuesta en cola. Apagado por defecto: genera ruido.'
     mod_notify_staff_on_user_notes: Avisa al resto del team cuando se agrega una nota a un perfil. Requiere discourse-user-notes.
     mod_notify_staff_on_flag_notes: Avisa al resto del team cuando se agrega una nota a un reporte en la cola.
-    mod_notify_whisper_targets: Avisa a quienes reciben una respuesta privada y a quienes el team suma a una. Apagado, llegan sin aviso.
+    mod_notify_whisper_targets: Avisa a quienes reciben una respuesta privada y a quienes el team suma a una. Los grupos automáticos (niveles de confianza, todo el mundo, team) pueden leerla pero no reciben aviso, para no notificar a cientos de personas. Apagado, llegan sin aviso.
     mod_auto_mark_notifications_seen: Abrir una historia o la cola de revisión marca como leídos los avisos de notas y respuestas privadas de este plugin. No toca los demás.
     mod_notification_type_filter_enabled: Agrega un filtro por tipo en la página de notificaciones y una vista de notas para el team. Lo primero a apagar si esa página falla.
     mod_whisper_enabled: Interruptor para crear respuestas privadas, independiente del resto del módulo. Una respuesta privada solo la ven el team, quien la escribió y las personas, grupos y retos elegidos. Apagado impide respuestas privadas nuevas; las existentes siguen privadas (se publican convirtiéndolas en públicas).
     mod_whisper_add_participant_enabled: Permite al team sumar personas a una respuesta privada existente. Reciben aviso y ven esa respuesta y las que mantienen su audiencia, no otras respuestas privadas de la historia.
     mod_whisper_convert_enabled: Permite al team convertir respuestas en privadas y al revés, y cambiar a quién van. Afecta a su visibilidad en la búsqueda.
     mod_whisper_badge_targeting_enabled: 'Permite responder en privado a quienes tengan un reto. Se comprueba al leer: quien lo gane después ve las anteriores y quien lo pierda deja de verlas.'
-    mod_whisper_audience_aware_topic_list: Una respuesta privada cuenta como nueva y sin leer para las personas, grupos y retos a quienes va (el team siempre la ve como nueva). Apagado, solo llega el aviso. Nunca sube la historia ni cuenta como nueva para quien no la puede ver.
+    mod_whisper_audience_aware_topic_list: Una respuesta privada cuenta como nueva y sin leer para las personas, grupos y retos a quienes va (el team siempre la ve como nueva). Apagado, solo llega el aviso. Nunca sube la historia ni cuenta como nueva para quien no la puede ver. Encendido, tampoco deja la historia sin leer para quien no la ve pero está en whispers_allowed_groups.
     translator_tweaks_enabled: Ajuste sobre el plugin discourse-translator; sin él no hace nada. El proxy se aplica al arrancar, así que apagarlo requiere reiniciar.
     translator_tweaks_worker_url: URL base que reemplaza a translation.googleapis.com, con la ruta /language/translate/v2 completa. Vacío llama a Google directo. Todo lo que se traduce y la clave de API de Google pasan por este host, así que solo un proxy propio. Requiere reiniciar (./launcher restart app).
     smart_search_enabled: Si una búsqueda da pocos resultados, la repite con sinónimos y suma lo nuevo («js» encuentra «javascript»). Diccionarios de inglés (WordNet) y español (Open Multilingual Wordnet) más una lista técnica; cada búsqueda usa solo el idioma de quien busca. Todo local; si falla, búsqueda normal. Grupos propios en {{setting:smart_search_extra_synonyms}}.
@@ -175,7 +178,8 @@ es:
     disteleplus_bridge_uploads: Copia fotos, documentos, video y audio en ambos sentidos hasta el límite de abajo. Apagado, se reemplazan por un texto.
     disteleplus_max_upload_mb: Los archivos más grandes no se copian. Máximo 20 MB, límite de la API de bots.
     disteleplus_bridge_edits: Las ediciones se reflejan del otro lado. Editar en el foro un mensaje de Telegram solo cambia la copia del foro.
-    disteleplus_bridge_deletes: Borrar un mensaje lo borra también en Telegram (menos de 48 h y con permiso de borrado). Lo borrado en Telegram no se refleja acá.
+    disteleplus_bridge_deletes: Borrar un mensaje del puente lo borra también del otro lado, sin importar dónde se escribió. De acá a Telegram el bot necesita permiso para borrar en el grupo, y Telegram solo deja borrar mensajes de menos de 48 horas; los fallos quedan en /logs. De Telegram a acá hace falta disteleplus_deletion_check_chat_id.
+    disteleplus_deletion_check_chat_id: Telegram no avisa a un bot cuando se borra un mensaje, así que el puente lo comprueba. Hay que crear un canal privado, sumar al bot como admin que puede publicar y borrar, y poner acá el id del canal (empieza con -100). Cada cinco minutos el bot copia ahí los mensajes del puente y borra las copias; si Telegram no encuentra uno, se borró allá y se borra acá. Se revisan los mensajes de la última hora cada vez, y los de la semana más o menos cada hora. Vacío, no se revisa nada.
     disteleplus_bridge_polls: Muestra las encuestas de Telegram como texto que se actualiza con los votos. No se vota desde el foro.
     disteleplus_bridge_reaction_notices: "Cuando alguien reacciona en el foro, publica «Nombre reaccionó \U0001F44D» bajo la copia en Telegram, sin aviso."
     disteleplus_bridge_reactions: Las reacciones de Telegram aparecen acá. Hacia Telegram solo entra una reacción por mensaje, la última.
@@ -282,6 +286,7 @@ es:
   discourse_mod_categories:
     whisper:
       first_post_not_allowed: Una historia nueva no puede empezar con una respuesta privada ni citarla.
+      move_first_post_not_allowed: Una respuesta privada no puede ser la primera de una historia. Movela junto con una respuesta pública anterior, o al final de una historia existente.
       add_participant_needs_whisper: Elegí una respuesta privada a la que sumar a la persona.
     note_notification_alert: "%{username} agregó una nota de moderación en «%{topic}»"
     note_reply_notification_alert: "%{username} respondió a una nota de moderación en «%{topic}»"

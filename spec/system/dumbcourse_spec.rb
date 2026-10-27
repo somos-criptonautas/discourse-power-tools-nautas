@@ -176,6 +176,54 @@ RSpec.describe "Dumbcourse" do
     end
   end
 
+  # With Discourse's Unified New on, /new.json also lists topics with unread
+  # replies, and Dumbcourse's New showed what its Unread tab shows
+  describe "New and Unread with Discourse's Unified New on" do
+    fab!(:fresh) do
+      Fabricate(:topic, user: alice, category: category, title: "Is the Qin F25 worth it?")
+    end
+
+    before do
+      SiteSetting.enable_unified_new = true
+      bob.user_option.update!(new_topic_duration_minutes: User::NewTopicDuration::ALWAYS)
+      Fabricate(:post, topic: fresh, user: alice, raw: "Thinking of getting one for my son.")
+      # bob read the first post of the flip phone topic and tracks it
+      topic.update!(highest_post_number: 2, posts_count: 2)
+      TopicUser.change(
+        bob.id,
+        topic.id,
+        last_read_post_number: 1,
+        notification_level: TopicUser.notification_levels[:tracking],
+      )
+      sign_in(bob)
+    end
+
+    it "lists only new topics under New, and topics with unread replies under Unread" do
+      phone do
+        visit "/dumb/new"
+        expect(page).to have_css(".row.topic", text: fresh.title)
+        expect(page).to have_no_css(".row.topic", text: topic.title)
+
+        visit "/dumb/unread"
+        expect(page).to have_css(".row.topic", text: topic.title)
+        expect(page).to have_no_css(".row.topic", text: fresh.title)
+      end
+    end
+
+    it "dismisses the new topics from New, and leaves the unread ones" do
+      phone do
+        visit "/dumb/new"
+        expect(page).to have_css(".row.topic", text: fresh.title)
+        press("9")
+        find(".sheet-item", text: "Dismiss all new").click
+        find(".dialog [data-ok]").click
+        expect(page).to have_no_css(".row.topic", text: fresh.title)
+      end
+      expect(DismissedTopicUser.exists?(user: bob, topic: fresh)).to eq(true)
+      expect(TopicUser.get(topic, bob).last_read_post_number).to eq(1)
+    end
+  end
+
   describe "reading and writing with the D-pad" do
     before { sign_in(bob) }
 
@@ -198,6 +246,31 @@ RSpec.describe "Dumbcourse" do
           PostAction.exists?(post_id: op.id, user_id: bob.id) ||
             DiscourseReactions::ReactionUser.exists?(post_id: op.id, user_id: bob.id),
         ).to eq(true)
+      end
+    end
+
+    # On a computer: the selected post had a ring outside its border as well
+    # as the bar, a glaring white rim on the JTech palette, and the top bar's
+    # buttons sat at the window's edges, far from the 44rem column under them
+    it "marks the selected post calmly and keeps the top bar to the column on a wide screen" do
+      resize_window(width: 1400, height: 900) do
+        visit "/dumb/t/#{topic.slug}/#{topic.id}"
+        expect(page).to have_css(".post[data-n='1']")
+        ring, bar_left, column_left = page.evaluate_script(<<~JS)
+          (() => {
+            const post = document.querySelector(".post[data-n='1']");
+            post.focus();
+            return [
+              getComputedStyle(post).boxShadow,
+              document.querySelector("#topbar > *").getBoundingClientRect().left,
+              document.querySelector("#app").getBoundingClientRect().left,
+            ];
+          })()
+        JS
+        # one shadow, the inset bar: no ring outside the border
+        expect(ring.scan(/rgba?\(/).size).to eq(1)
+        expect(ring).to include("inset")
+        expect(bar_left).to be_within(8).of(column_left)
       end
     end
 
@@ -469,6 +542,28 @@ RSpec.describe "Dumbcourse" do
       expect(Topic.last.category).to eq(category)
     end
 
+    it "asks for a tag where the category needs one, and adds it" do
+      SiteSetting.tagging_enabled = true
+      Fabricate(:tag, name: "tcl")
+      category.update!(minimum_required_tags: 1)
+      phone do
+        visit "/dumb/"
+        press("3")
+        find("#cTitle").fill_in(with: "Best case for the TCL Flip Pro")
+        find("#cCat").select("Flip Phones")
+        expect(page).to have_css("#cTagsHint", text: "This category needs a tag.")
+        find("#cText").fill_in(with: "Mine keeps getting scratched. Any recommendations?")
+        find("[data-c=send]").click
+
+        expect(page).to have_css(".sheet-sub", text: "This category needs a tag.")
+        find(".sheet-item", text: "#tcl").click
+        expect(page).to have_css("#cTags .chip", text: "#tcl")
+        find("[data-c=send]").click
+        expect(page).to have_css(".topic-title", text: "Best case for the TCL Flip Pro")
+      end
+      expect(Topic.last.tags.map(&:name)).to eq(["tcl"])
+    end
+
     it "shows notifications and marks them read when opened" do
       notification =
         Notification.create!(
@@ -498,6 +593,24 @@ RSpec.describe "Dumbcourse" do
         shot("08_menu")
         press(:escape)
         expect(page).to have_no_css(".layer-drawer")
+      end
+    end
+
+    # On a computer the menu opened at the window's far edge, away from the
+    # column it belongs to
+    it "opens the menu at the content's column on a wide screen" do
+      resize_window(width: 1400, height: 900) do
+        visit "/dumb/"
+        expect(page).to have_css(".row.topic")
+        find("#tbMenu").click
+        expect(page).to have_css(".layer-drawer .menu-item", text: "Notifications")
+        drawer_left, column_left = page.evaluate_script(<<~JS)
+          [
+            document.querySelector(".layer-drawer .layer-panel").getBoundingClientRect().left,
+            document.querySelector("#app").getBoundingClientRect().left,
+          ]
+        JS
+        expect(drawer_left).to be_within(2).of(column_left)
       end
     end
 
@@ -575,6 +688,68 @@ RSpec.describe "Dumbcourse" do
         find(".sheet-item", text: "Always").click
         # Before: the screen re-ran from scratch and focus went back to Theme.
         expect(page).to have_css(".row[data-pref=softkeys]:focus", text: "Always")
+      end
+    end
+  end
+
+  # On a touch phone a post's footer rolls its reactions out beside the
+  # like, as many as the forum has turned on; the keypad keeps React… in the
+  # post's menu.
+  describe "reactions on a touch screen" do
+    before do
+      SiteSetting.discourse_reactions_enabled_reactions =
+        "+1|laughing|open_mouth|clap|confetti_ball|hugs|trophy|tada|fire|pray|thinking|100|eyes|rocket"
+      sign_in(bob)
+    end
+
+    let(:foot) { ".post[data-n='1'] .post-foot" }
+
+    it "rolls them out in the footer, in a row that scrolls, and picks one" do
+      resize_window(width: 360, height: 740) do
+        visit "/dumb/t/#{topic.slug}/#{topic.id}"
+        expect(page).to have_css("#{foot} .rx-open")
+        find("#{foot} .rx-open").click
+        # the heart is the like beside it, not in the row
+        expect(page).to have_css("#{foot}.rolled .rx-row .rx-pick", count: 14)
+        # the like and Reply stay, the rest step aside
+        expect(page).to have_css("#{foot} .pa.like")
+        expect(page).to have_css("#{foot} [data-act='reply-post']")
+        expect(page).to have_no_css("#{foot} [data-act='post-menu']")
+        scrolls =
+          page.evaluate_script(
+            "(() => { const r = document.querySelector(\"#{foot} .rx-row\"); return r.scrollWidth > r.clientWidth; })()",
+          )
+        expect(scrolls).to eq(true)
+        shot("reactions_row")
+
+        # a second tap shuts it
+        find("#{foot} .rx-open").click
+        expect(page).to have_no_css("#{foot} .rx-row")
+        expect(page).to have_css("#{foot} [data-act='post-menu']")
+
+        find("#{foot} .rx-open").click
+        find("#{foot} .rx-pick[data-reaction='fire']").click
+        try_until_success do
+          expect(
+            DiscourseReactions::ReactionUser.joins(:reaction).where(
+              user: bob,
+              post: op,
+              reaction: {
+                reaction_value: "fire",
+              },
+            ),
+          ).to exist
+        end
+        expect(page).to have_css(".post[data-n='1'] .rx.mine[data-reaction='fire']")
+        expect(page).to have_no_css("#{foot} .rx-row")
+      end
+    end
+
+    it "has no row on your own posts" do
+      resize_window(width: 360, height: 740) do
+        visit "/dumb/t/#{topic.slug}/#{topic.id}"
+        expect(page).to have_css(".post[data-n='2'] .post-foot")
+        expect(page).to have_no_css(".post[data-n='2'] .rx-open")
       end
     end
   end

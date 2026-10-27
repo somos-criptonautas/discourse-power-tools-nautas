@@ -1,23 +1,25 @@
 # JTech theme
 
-The forum's own theme ships with the plugin: AMOLED black and pure white, monochrome everywhere, hairline borders, rounded ("squircle") corners and the Geist typeface. Light and dark are exact inverses and follow each person's colour-mode choice. People who find the black too harsh can pick **JTech Dim** (soft grey) instead under Preferences → Interface → Color Palette → Dark mode; OLED black stays the default.
+The forum's own theme ships with the plugin: AMOLED black and pure white, monochrome everywhere, hairline borders, rounded ("squircle") corners and the Geist typeface. Light and dark are exact inverses and follow each person's colour-mode choice. People who want stock Discourse can pick **Discourse** (its look as well as its colours, on soft greys in dark), and people who want colour can pick one of eight palettes; black and white stays the default. The palette button in the sidebar footer (in the ☰ menu on a phone) switches with one click, no reload.
 
 What it adds on top of a restyle:
 
 - **Topic cards** instead of table rows, with the first image beside the title and a Quick look preview.
 - **A front-page hero**: the headline, search and a way in for visitors beside a turning planet of dots (setting `hero_planet`), with **category and tag banners** and a **footer** with link columns.
 - The **about page** with its counts as tiles and the staff as cards.
-- **⌘K / Ctrl+K command menu** to jump to pages, categories, topics and people. The header's search field opens it. For people who can use chat, ⌘K stays chat's channel switcher (core binds it) and the menu opens from the search field only; "/" still opens Discourse's own search.
+- **⌘K / Ctrl+K command menu** to jump to pages, categories, topics and people, or to advanced search (the search page with its filters open; ⌘⇧K / Ctrl+Shift+K goes straight there). The header's search field opens it. For people who can use chat, ⌘K stays chat's channel switcher (core binds it) and the menu opens from the search field only; "/" still opens Discourse's own search.
 - **Header**: search (in the middle of the bar on wide screens), JTech homepage, messages and notifications (with unread counts), new topic. Light/dark is in the sidebar's Color mode menu and the command menu; setting `header_color_toggle` puts an icon for it in the header too. The avatar opens your profile menu (account, preferences, log out); staff keep core's review-queue badge on it, and while that shows, the avatar opens the review queue.
 - **Sidebar**, **profiles**, **users directory**, **full-page search** and **empty pages** redesigned; site notices get a dismiss button.
 - A **login gate** for chosen categories and tags: logged-out visitors see a topic's first lines fade into a card to log in or create an account.
 - **Lucide icons**: Discourse's icons in Lucide's thin outline style (lucide.dev) instead of Font Awesome, as ChatGPT and Gemini use.
 - The **tags page** as chips with their counts, instead of columns of "name x 190".
+- **Reactions in a row** (with the Reactions plugin, setting `reaction_rollout`): the heart likes a post when clicked, and pointing at it rolls the reactions out sideways in the post's menu, pushing what's beside it along, instead of a box over the post. It slides open to as many whole reactions as there's room for, and slides shut again when the pointer leaves. A row that doesn't fit scrolls (the mouse wheel glides along it, and while pointing at the row never scrolls the page, even at its ends) and fades at an edge with more to scroll to. On phones a button beside the heart opens it with a tap; while it's open the menu's other buttons but Reply step aside. Under a Discourse palette the plugin's own picker shows, as in stock Discourse.
+- **A post's buttons on one line on phones**: what doesn't fit beside the reactions goes into ⋯, which opens a list of them, named, from the bottom of the screen.
 - An overlay page scrollbar, a back-to-top button, reading progress, language labels on code blocks, category icons on the categories page.
 
 Each of those has its own switch in the theme's settings.
 
-The command menu shows each command's keyboard shortcut beside it: Discourse's own (`g l` Latest, `g n` New, …), plus `g g` Tags, `g i` Notifications, `g e` Preferences, `g a` Admin and `g o` light / dark, which the theme adds and lists in the `?` help. They work anywhere outside a text field; in the open menu, typing searches.
+The command menu shows each command's keyboard shortcut beside it: Discourse's own (`g l` Latest, `g n` New, …), plus `g g` Tags, `g i` Notifications, `g e` Preferences, `g a` Admin, `g o` light / dark and ⌘⇧K / Ctrl+Shift+K advanced search, which the theme adds and lists in the `?` help. They work anywhere outside a text field; in the open menu, typing searches.
 
 ## Installing it
 
@@ -61,7 +63,7 @@ JTech replaces the forum's theme components: each one it covers has a JTech sett
 | Post Badges | `post_badges` | Copy the component's badge names without the stray spaces: on the forum today `Senior Mitmachim Top Member\|JS monster\|Phone Distributor\|Senior Apps4flip Member\|Jose Briones Badge\|Linux Master\|Sunday Off\|Kdroid Badge\|Megalife Support\|GreenTouch Official\|Sonim Engineer`. Discourse matches the names exactly apart from case, so the component's `Phone Distributor ` (trailing space) and `$Administrator ` never matched anything. The badges link to their badge page, as the forum had it. |
 | Post Image Carousel | `image_carousels` | Posts written with its `[wrap=Carousel]` show their pictures in Discourse's own carousel, the one `[grid mode=carousel]` makes (use that for new posts); any text in the wrap stays. Its autoplay, loop and thumbnails aren't carried over (four of the forum's five carousels had them off), and nothing is loaded from a CDN any more. |
 | Messages section for sidebar | `sidebar_inboxes` | An Inboxes section for people in a group with a shared inbox (moderators and admins on the forum): My messages and each group's inbox, with unread counts and a + for a new message. Everyone else has Discourse's My Messages link, which the section would only repeat. |
-| Reader Mode | `reader_mode` | The switch at the top of the timeline, and Ctrl+Alt+R, as before: the sidebar goes, the header and the posts' buttons fade until pointed at, and the text can be made larger, the column narrower or wider, or the type a serif (kept per browser). The component's sepia and dark colours aren't carried over: the forum's own light and dark (and Dim) cover them. |
+| Who's Online | `online_box` | With the Who's Online plugin, a button beside the topic list's tabs, "Online: 3", instead of the plugin's row of avatars over the list. Clicked, a box pops out under it with everyone online, each linking to their profile. Shown to whoever the plugin shows its row to, while its minimum are online. |
 | QR Code Shareables | `qr_code_share` | QR code among the share options (a topic, a post, the buttons over a quote): the link as a code to scan with a phone, black on white in both colour modes, with Save image. Made in the browser by the theme (Discourse only makes QR codes on the server, for two-factor setup); the component's colour, dot-style and logo settings aren't carried over. |
 | Unhide composer fullscreen toggle for tablets | — | Always on. |
 | Sidebar Theme Toggle | `color_mode_toggle` | Keep the component only if people should also be able to switch to another theme. |
@@ -80,6 +82,7 @@ JTech replaces the forum's theme components: each one it covers has a JTech sett
 - **Wikipedia Lookup**: used once, in a test message.
 - **Restricted reactions (like) by group**: it never restricted anyone (it compared the setting's group IDs with group names), and hiding a button wouldn't stop the like API anyway. A real restriction belongs on the server, in the plugin.
 - **chat-bubbles**: it wasn't attached to any theme.
+- **Reader Mode**: nobody used it.
 
 **Not a real restriction:** JTech's login gate (like "Gated Topics in Category" before it) only hides topics in the browser. They're still sent to logged-out visitors (`/t/….json` reads them). If that needs to hold, it belongs in category permissions.
 
@@ -87,15 +90,25 @@ JTech replaces the forum's theme components: each one it covers has a JTech sett
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| `jtech_theme_install` | on | Install the bundled theme and update it when the plugin updates. Never made the default. Turning it on installs now and brings back a deleted theme. |
+| `jtech_theme_install` | off | Install the bundled theme and update it when the plugin updates. Never made the default. Turning it on installs now and brings back a deleted theme. |
 
 The look itself is configured in the theme's own settings (corner style, cards, hero text, footer links, header home link and the other switches).
 
-The theme brings three palettes: **JTech Light** and **JTech Dark** (OLED black) are its light and dark defaults, and **JTech Dim** is offered to users as a softer dark mode. The plugin marks JTech Dim "users can select" once when it first installs it; turn that off under Customize → Colors and it stays off. Being user-selectable, it's also offered with other themes that let people pick any palette.
+The theme brings its palettes in pairs, a light and a dark of each:
+
+- **JTech Light** / **JTech Dark** (OLED black): the defaults, black and white.
+- **Discourse**: stock Discourse, more than its colours. Its white and blue in light; in dark, JTech Dim's soft greys (it replaces Dim, and whoever had picked Dim moves to it) with Discourse's blue and a top bar darker than the page. Picked, the forum also takes stock Discourse's look: its topic lists (rows on a computer, its own list on a phone, not the theme's cards) under its row of tabs and Who's Online's own row, its shades instead of the flattened greys (solid lines, its hover and selection tints), colour where Discourse has it (category icons and badges, letter avatars, the timeline, the online ring), 4px corners, round avatars, a solid header, uppercase sidebar headings with a line under each section, and Font Awesome icons instead of Lucide. Spacing and the header's search stay the theme's. Switching to or from it in the palette menu reloads the page, for the icons.
+- **Nord**, **Catppuccin** (Latte / Mocha), **Rosé Pine** (Dawn / main), **Gruvbox**, **Tokyo Night** (Day / Night), **Everforest**, **Paper** (warm sepia for long reads) and **Horizon** (Discourse's Horizon theme: near-black on white, a periwinkle accent, periwinkle hover and selection). These follow the well-known editor palettes of the same names: their paper, ink and one accent, which colours buttons, links, the active tab, unread badges, focus rings and selected text. Where a palette's own accent or grey reads under 4.5:1 it is darkened (or lightened) until it does.
+
+The plugin marks every palette but the two defaults "users can select" once, when it first installs it (or when an update adds it); turn one off under Customize → Colors and it stays off. Being user-selectable, they're also offered with other themes that let people pick any palette.
+
+**Palette menu** (theme setting `palette_menu`, on): a palette button in the sidebar footer, beside Discourse's light / dark menu, lists every palette with a swatch and switches on the spot. A member's choice is saved to their account, the same setting as Preferences → Interface → Color Palette, so it follows them to other devices; a visitor's is kept in that browser. Under the palettes the same menu has **Density**, as in Gmail: Default (the cards as they are), Comfortable (cards without excerpt or picture, a little tighter) and Compact (one row a topic, in one divided list); it's kept in that browser.
 
 ## Things outside the theme
 
 - **Brand assets.** The JTech mark, app icon and favicon are in [`docs/theme/brand/`](../theme/brand/). They're site settings (`logo_small`, `favicon`, `apple_touch_icon`…), so they apply to every theme; upload them yourself if you want them. The installed app's icon is the exception: the plugin's web manifest serves the app icon (the mark on a solid square) instead of `manifest_icon`, so it shows on a light taskbar too; setting `jtech_app_icon`. On phones the header shows `logo_small` (the square mark) instead of the wide logo, unless a `mobile_logo` is uploaded; theme setting `mobile_small_logo`. Setting `base_font` and `heading_font` to `system` stops browsers downloading Roboto, which JTech doesn't use.
+- **Trust level flair.** Discourse only shows a flair someone picked under Preferences → Account, so most members show none. With `jtech_trust_level_flair` on (off by default), everyone without a flair of their own shows their highest trust level group's that has one (set the flair icons on the trust level groups under Groups; the theme draws them as rings and chevrons with `monochrome_flair`). It follows their trust level up and down, daily and whenever it changes. Picking another flair, or taking it off, keeps that choice.
+- **Badge thresholds.** Core's silver and gold badges were sized for forums far busier per post: here one post ever reached 25 likes and the longest visit streak is 171 days, so Great Post (50 likes) or Devotee (365 days) nobody could earn. With `jtech_badge_thresholds` on (the default), the top rungs are set to what members here reach — every one from core's own query builder (`lib/discourse_badge_thresholds.rb`) — and set again after every rebuild, since core and Solved re-seed their badges.
 - **Card thumbnails.** The theme asks Discourse for 320 px topic thumbnails, so after it's installed Sidekiq makes them for listed topics once, a few at a time.
 - **Color mode menu.** The sidebar's light / dark / auto menu is Discourse's own: site setting `interface_color_selector` set to **Sidebar footer** (the forum's today). With JTech's header icon off (the default), it and the command menu are where people switch.
 - **Links to the landing site** (`/home`, `/dumb`, `/terms`…): the header, footer and links inside posts open any same-site link that isn't a forum page as a normal page load, so they reach the landing site instead of the forum's 404 page.

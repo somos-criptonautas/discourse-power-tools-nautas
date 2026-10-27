@@ -20,6 +20,15 @@ module ::DiscourseModCategories
     KIND_USER_NOTE = "user_note"
     KIND_FLAG_NOTE = "flag_note"
 
+    # A user's notifications from the mod notes feed: topic notes and
+    # replies, and the staff events above.
+    def self.mod_notes_for(user_id)
+      ::Notification.where(
+        user_id: user_id,
+        notification_type: ::Notification.types[:custom],
+      ).where("data LIKE ?", '%"mod_note":true%')
+    end
+
     # `acting_user` is excluded from recipients so the moderator who
     # performed the action does not get their own notification.
     #
@@ -38,8 +47,10 @@ module ::DiscourseModCategories
     # category or every review item (some are admin-only), and an alert
     # carries the title and an excerpt — so it goes only to staff who could
     # open the thing it points at.
-    def self.staff_recipients(except:, topic: nil, reviewable: nil)
-      staff = ::User.where(admin: true).or(::User.where(moderator: true))
+    # `admins_only`: for what an admin wrote, which moderators don't see.
+    def self.staff_recipients(except:, topic: nil, reviewable: nil, admins_only: false)
+      staff = ::User.where(admin: true)
+      staff = staff.or(::User.where(moderator: true)) if !admins_only
       staff = staff.where.not(id: except.id) if except
 
       Enumerator.new do |yielder|
@@ -73,10 +84,13 @@ module ::DiscourseModCategories
       topic_id = topic&.id
       topic_title = topic&.title
 
+      # an admin's note on a profile or a flag reaches admins only
+      admins_only = acting_user.admin? && [KIND_USER_NOTE, KIND_FLAG_NOTE].include?(kind)
       staff_recipients(
         except: acting_user,
         topic: topic,
         reviewable: reviewable,
+        admins_only: admins_only,
       ).each do |staff_user|
         # Idempotency check: skip when this staff member already has a
         # mod-note notification of the same kind anchored on the same
@@ -130,7 +144,6 @@ module ::DiscourseModCategories
           topic_title: topic_title,
           target_username: target_username,
         )
-        staff_user.publish_notifications_state
       end
     rescue StandardError => e
       ::Rails.logger.warn(

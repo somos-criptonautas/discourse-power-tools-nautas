@@ -16,9 +16,6 @@ es:
       placeholder: Mensaje…
       send: Enviar
       empty_title: Empezar la conversación
-      new_messages:
-        one: "%{count} mensaje nuevo"
-        other: "%{count} mensajes nuevos"
       unread_divider: Mensajes nuevos
       go_to_bottom: Ir al final
       search: Buscar mensajes
@@ -182,10 +179,10 @@ es:
           short: SMS
           placeholder: "+54 9 11 5555 0100"
         whatsapp:
-          field: Número de WhatsApp
+          field: Número o usuario
           name: WhatsApp
           short: WhatsApp
-          placeholder: "+54 9 11 5555 0100"
+          placeholder: "+54 9 11 5555 0100 o @usuario"
         email:
           field: Dirección
           name: Correo
@@ -223,7 +220,6 @@ es:
         emoji: Emoji
         label: Nombre
         label_placeholder: p. ej. Línea de trabajo
-        value: Datos
         note: Nota
         optional: "(opcional)"
         note_placeholder: p. ej. Solo por la tarde
@@ -552,16 +548,17 @@ es:
         clear: Vaciar
         armed_pill_prefix: En privado para
         armed_pill_staff_only: En privado para el team
+        armed_pill_admins_only: Respuesta privada a admins (sumá el grupo de moderación para incluirlo)
         clear_armed: Quitar privado
         banner_to: Respuesta privada para
         banner_to_staff: Respuesta privada para el team
+        banner_to_admins: Respuesta privada a admins
         whisper_notification: te respondió en privado
+        notification_title: Respuesta privada
         convert_to_public:
           label: Hacer pública
           title: Quitar la privacidad para que todos la vean
           confirm: "¿Hacer pública esta respuesta privada? La va a ver cualquiera que pueda leer la historia."
-          done_toast: Ahora es pública
-          failed_toast: No se pudo convertir
         add_participant:
           menu_label: Sumar a las respuestas privadas
           modal_title: Sumar personas a esta respuesta privada

@@ -20,7 +20,7 @@ RSpec.describe DiscourseDisteleplus::TelegramUploadSender do
 
   it "uploads the file into the configured Telegram topic" do
     io = StringIO.new("binary")
-    allow(sender).to receive(:upload_io).and_return(io)
+    allow(described_class).to receive(:upload_io).and_return(io)
     allow(api).to receive(:call_multipart).and_return(telegram_result)
 
     delivery =
@@ -58,7 +58,10 @@ RSpec.describe DiscourseDisteleplus::TelegramUploadSender do
 
     expect(api).to have_received(:call).with(
       "sendMessage",
-      a_hash_including(message_thread_id: 77, text: a_string_including("Open file on JTech")),
+      a_hash_including(
+        message_thread_id: 77,
+        text: a_string_including("Open file on #{SiteSetting.title}"),
+      ),
     )
     expect(delivery.file_copied).to eq(false)
   end

@@ -19,6 +19,15 @@ body {
   --d-sidebar-section-link-icon-size: 1rem; // 16px glyph in an 18px box
   --d-sidebar-section-link-emoji-size: 1.0625rem;
   --d-sidebar-animation-time: 0.2s;
+
+  @media (pointer: coarse) {
+    --d-sidebar-row-height: 2.75rem; // 44px
+  }
+}
+
+// The sidebar's colours; a Discourse palette keeps core's (jt-vanilla.scss)
+html:not(.jt-vanilla),
+html:not(.jt-vanilla) body {
   --d-sidebar-background: var(--jt-surface);
   --d-sidebar-border-color: var(--jt-border);
   --d-sidebar-section-border-color: transparent;
@@ -38,10 +47,6 @@ body {
   --d-sidebar-active-icon-color: var(--jt-text);
   --d-sidebar-active-font-weight: 400;
   --d-sidebar-footer-fade: transparent;
-
-  @media (pointer: coarse) {
-    --d-sidebar-row-height: 2.75rem; // 44px
-  }
 }
 
 // The hamburger panel (phones, and desktop with the sidebar off) is a raised
@@ -293,6 +298,16 @@ body {
     gap: 2px;
   }
 
+  // Core shows its keyboard-shortcuts button whenever it takes the page for
+  // a desktop one, which it decides by width: a big phone, a phone turned
+  // sideways or the browser's "desktop site" got it, with no keyboard to use
+  // the shortcuts on. A touch screen without a mouse doesn't show it.
+  @media (hover: none) and (pointer: coarse) {
+    .sidebar-footer-actions-keyboard-shortcuts {
+      display: none;
+    }
+  }
+
   // Interface-theme picker takes the free space so its name never clips
   .sidebar-theme-toggle__wrapper {
     flex: 1 1 auto;
@@ -317,6 +332,111 @@ body {
       .d-icon {
         color: var(--jt-text);
       }
+    }
+  }
+}
+
+// The footer's palette and density menus (connectors/sidebar-footer-actions):
+// each palette's swatch is its paper with its accent in the middle, in the
+// mode on screen. On a phone the footer is in the header's menu panel, so the
+// menus go up to the header's layer, as core's Color mode menu does.
+.fk-d-menu:is(
+  [data-identifier="jt-palette-menu"],
+  [data-identifier="jt-density-menu"]
+) {
+  z-index: z("header");
+
+  .jt-palettes {
+    min-width: 12rem;
+    margin: 0;
+    padding: 0.25rem;
+    list-style: none;
+  }
+
+  .jt-palettes__option {
+    display: flex;
+    gap: 0.625rem;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    padding: 0.4rem 0.5rem;
+    border-radius: var(--jt-radius-control);
+    color: var(--jt-text);
+
+    @media (pointer: coarse) {
+      min-height: 2.75rem; // 44px, like the sidebar's rows
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: var(--jt-hover);
+    }
+
+    &.--active {
+      background: var(--jt-active);
+    }
+
+    .d-icon {
+      margin-inline-start: auto;
+      color: var(--jt-text);
+    }
+  }
+
+  .jt-palettes__swatch {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      var(--jt-swatch-ink) 0 36%,
+      var(--jt-swatch-paper) 40%
+    );
+    box-shadow: 0 0 0 1px var(--jt-border-strong);
+  }
+}
+
+// The density menu (lib/jt-density): for each choice a small picture of a
+// list at that density, like Gmail's: a card with lines, two rows, three rows.
+.fk-d-menu[data-identifier="jt-density-menu"] {
+  .jt-density-preview {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    width: 1.75rem;
+    height: 1.25rem;
+    padding: 2px;
+    border: 1px solid var(--jt-border-strong);
+    border-radius: 4px;
+
+    > span {
+      height: 2px;
+      border-radius: 1px;
+      background: var(--jt-text-subtle);
+    }
+
+    // default: a title and an excerpt in one roomy card
+    &.--default > span:nth-child(2) {
+      width: 70%;
+    }
+
+    &.--default > span:nth-child(3) {
+      display: none;
+    }
+
+    &.--comfortable > span:nth-child(3) {
+      display: none;
+    }
+
+    &.--comfortable,
+    &.--compact {
+      gap: 3px;
+    }
+
+    &.--compact {
+      gap: 2px;
     }
   }
 }

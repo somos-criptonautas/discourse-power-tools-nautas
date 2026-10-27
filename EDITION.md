@@ -38,6 +38,9 @@ upstream merges stay easy.
 - **REQ-PM** is off by default and assumes no country code.
 - **Upstream's JTech theme, app icon and row click** are off by default
   (`jtech_theme_install`, `jtech_app_icon`, `jtech_row_click_theme_ids`).
+- **Upstream's badge thresholds and participation badges** are off
+  (`jtech_badge_thresholds`, and `jtech_badges_enabled` gating the badges in
+  `sub_plugins/nautas.rb`). Mod elections stay off (upstream default).
 - **"Open forum links here"** in Dumbcourse is off
   (`dumbcourse_open_links_here`): the Android app (comunidad-criptonautas-app)
   decides where forum links open.
@@ -61,8 +64,8 @@ git merge upstream/main
 
 After a merge:
 
-- Add Spanish for any new English strings (both `.es.yml` files must have the
-  same keys as their `.en.yml`).
+- Add Spanish for any new English strings, except mod elections and the
+  participation badges (both off here; they fall back to English).
 - Rebuild Dumbcourse if `dumbcourse/` changed:
   ```bash
   pnpm dumbcourse:build

@@ -29,13 +29,13 @@ hero_enabled:
   default: true
 hero_title:
   type: string
-  default: "Welcome to JTech Forums"
+  default: "Welcome to the forum"
 hero_subtitle:
   type: string
-  default: "The most precise, accurate and up-to-date tech and filtering information for the Orthodox community. Join a conversation, and remember to be kind and helpful."
+  default: ""
 hero_search_placeholder:
   type: string
-  default: "Search phones, filters, guides…"
+  default: "Search the forum…"
 hero_dismissible:
   type: bool
   default: true
@@ -47,7 +47,10 @@ footer_enabled:
   default: true
 footer_tagline:
   type: string
-  default: "Precise, up-to-date tech and filtering information for the Orthodox community."
+  default: ""
+footer_notice:
+  type: string
+  default: ""
 footer_links:
   type: objects
   default:
@@ -55,32 +58,38 @@ footer_links:
       title: Latest
       url: /latest
     - section: Forum
+      title: Top
+      url: /top
+    - section: Forum
       title: Categories
       url: /categories
     - section: Forum
+      title: Tags
+      url: /tags
+    - section: Forum
+      title: Search
+      url: /search
+    - section: Community
+      title: Members
+      url: /u
+    - section: Community
+      title: Groups
+      url: /g
+    - section: Community
+      title: Badges
+      url: /badges
+    - section: Community
       title: Guidelines
       url: /guidelines
-    - section: Forum
+    - section: Community
       title: About
       url: /about
-    - section: JTech
-      title: Homepage
-      url: https://jtechforums.org/home
-    - section: JTech
-      title: Contact
-      url: https://jtechforums.org/home/contact
-    - section: JTech
-      title: eGate filter
-      url: https://jtechforums.org/home/egate
-    - section: JTech
-      title: Dumbcourse
-      url: https://jtechforums.org/dumb
     - section: Legal
       title: Terms
-      url: https://jtechforums.org/terms
+      url: /tos
     - section: Legal
       title: Privacy
-      url: https://jtechforums.org/privacy-policy
+      url: /privacy
   schema:
     name: link
     identifier: title
@@ -114,13 +123,19 @@ external_link_icon:
   default: true
 header_home_url:
   type: string
-  default: "/home"
+  default: ""
 color_mode_toggle:
   type: bool
   default: true
 header_color_toggle:
   type: bool
   default: false
+palette_menu:
+  type: bool
+  default: true
+density_menu:
+  type: bool
+  default: true
 overlay_scrollbar:
   type: bool
   default: true
@@ -142,7 +157,7 @@ code_line_numbers:
 internal_hosts:
   type: list
   list_type: simple
-  default: "jtechforums.org|forums.jtechforums.org|forums.jtechforums.com|forums.mitmachim.com"
+  default: ""
 reading_progress:
   type: bool
   default: true
@@ -217,9 +232,12 @@ image_carousels:
 sidebar_inboxes:
   type: bool
   default: true
-reader_mode:
+online_box:
   type: bool
   default: true
 qr_code_share:
+  type: bool
+  default: true
+reaction_rollout:
   type: bool
   default: true

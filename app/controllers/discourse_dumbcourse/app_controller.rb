@@ -30,6 +30,7 @@ module DiscourseDumbcourse
       file = static_file
       return serve_static(file) if file
 
+      Usage.visit!(current_user) if current_user
       html = page_html
       response.headers["Cache-Control"] = "no-store"
       render html: html.html_safe, content_type: "text/html"
@@ -172,6 +173,8 @@ module DiscourseDumbcourse
         # value can close the <script> element.
         "{{BOOT}}" => ERB::Util.json_escape(boot_payload.to_json),
         "{{EARLY}}" => early,
+        # Only hex colours in custom properties (Palette.declarations)
+        "{{PALETTE}}" => Palette.style(user: current_user, cookies: cookies),
       }
       template.gsub(/\{\{[A-Z_]+\}\}/) { |m| replacements.fetch(m, "") }
     end
@@ -229,6 +232,7 @@ module DiscourseDumbcourse
         reqpmCountryCode: setting(:reqpm_default_country_code).to_s,
         leaderboardId: setting(:dumbcourse_leaderboard_id).to_i,
         openLinksHere: !!setting(:dumbcourse_open_links_here),
+        modElectionsEnabled: ::DiscourseModElections.enabled?,
         tagsEnabled: !!SiteSetting.tagging_enabled,
         maxPostLength: SiteSetting.max_post_length,
         minPostLength: SiteSetting.min_post_length,
@@ -257,6 +261,8 @@ module DiscourseDumbcourse
         moderator: user.moderator?,
         trust_level: user.trust_level,
         can_send_private_messages: guardian.can_send_private_messages?,
+        can_tag_topics: guardian.can_tag_topics?,
+        can_create_tag: guardian.can_create_tag?,
         can_review: guardian.can_see_review_queue?,
         reviewable_count: guardian.can_see_review_queue? ? user.reviewable_count : 0,
         unread_notifications: user.unread_notifications,
@@ -265,6 +271,7 @@ module DiscourseDumbcourse
         new_personal_messages_notifications_count: user.new_personal_messages_notifications_count,
         reqpm_available: reqpm[:available],
         reqpm_incoming_count: reqpm[:incoming_count] || 0,
+        mod_election_vote_due: mod_election_vote_due(user),
         can_pair_devices: DiscourseDumbcourse::Pairing.enabled? && !user.is_impersonating,
         second_factor_enabled: user.totp_enabled? || user.security_keys_enabled?,
       }
@@ -273,8 +280,16 @@ module DiscourseDumbcourse
       nil
     end
 
+    # 1 while Vote Week is open and this member can vote but hasn't.
+    def mod_election_vote_due(user)
+      return 0 unless ::DiscourseModElections.enabled?
+      summary = ::DiscourseModElections::Presenter.current_user_summary(user)
+      summary && summary[:voter] && !summary[:voted] ? 1 : 0
+    rescue StandardError
+      0
+    end
+
     def reqpm_summary(user)
-      return { available: false } unless defined?(::DiscourseReqpm::Presenter)
       ::DiscourseReqpm::Presenter.current_user_summary(user)
     rescue StandardError
       { available: false }
@@ -317,7 +332,7 @@ module DiscourseDumbcourse
     end
 
     def no_reaction_category_ids
-      defined?(::DiscourseNoLikes) ? ::DiscourseNoLikes.restricted_category_ids : []
+      ::DiscourseNoLikes.restricted_category_ids
     rescue StandardError
       []
     end
@@ -327,6 +342,15 @@ module DiscourseDumbcourse
     NOTIFICATION_KEYS = %w[
       reqpm.notifications.request
       reqpm.notifications.shared
+      mod_elections.notifications.on_ballot
+      mod_elections.notifications.voting_open
+      mod_elections.notifications.reminder
+      mod_elections.notifications.closed
+      mod_elections.notifications.results
+      mod_elections.notifications.disqualified
+      mod_elections.notifications.ineligible
+      mod_elections.notifications.seat_filled
+      mod_elections.notifications.schedule_blocked
       discourse_mod_categories.whisper.whisper_notification
       discourse_mod_categories.note_notification
       discourse_mod_categories.note_reply_notification
@@ -369,6 +393,9 @@ module DiscourseDumbcourse
           :position,
           :notification_level,
           :subcategory_ids,
+          # What a new topic there needs, so the composer can ask for tags.
+          :minimum_required_tags,
+          :required_tag_groups,
         )
       end
     end

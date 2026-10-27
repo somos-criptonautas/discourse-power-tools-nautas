@@ -4,8 +4,7 @@ module ::DiscourseModCategories
   # Persistence endpoint for the moderator-set messages. Every action is
   # Guardian-gated so only moderators and admins can write; regular users
   # get a 403.
-  class MessagesController < ::ApplicationController
-    requires_plugin "jtech-tools"
+  class MessagesController < BaseController
     requires_login
 
     # Whispers and notification auto-mark have their own switches and keep
@@ -52,6 +51,7 @@ module ::DiscourseModCategories
       end
       if params.key?(:private_note) || params.key?(:private_note_position)
         ensure_feature!(:mod_topic_private_notes_enabled)
+        ensure_note_visible!(topic)
       end
 
       if params.key?(:footer_message)
@@ -120,7 +120,7 @@ module ::DiscourseModCategories
                private_note: topic.custom_fields[TOPIC_PRIVATE_NOTE_FIELD].to_s,
                private_note_position:
                  topic.custom_fields[TOPIC_PRIVATE_NOTE_POSITION_FIELD].presence || "bottom",
-               private_note_author: private_note_author(topic),
+               private_note_author: DiscourseModCategories::NoteThread.author(topic),
              }
     end
 
@@ -158,6 +158,7 @@ module ::DiscourseModCategories
 
       guardian.ensure_can_manage_mod_messages!
       ensure_feature!(:mod_topic_private_notes_enabled)
+      ensure_note_visible!(topic)
 
       raw = params[:raw].to_s.strip
       raise Discourse::InvalidParameters.new(:raw) if raw.empty?
@@ -177,7 +178,7 @@ module ::DiscourseModCategories
       end
       notify_staff_of_reply(topic, reply) if SiteSetting.mod_notify_staff_on_topic_notes
 
-      render json: { replies: serialized_note_replies(topic) }
+      render json: { replies: DiscourseModCategories::NoteThread.replies(topic) }
     end
 
     # Edits the `raw` body of a single reply in the note thread.
@@ -186,6 +187,7 @@ module ::DiscourseModCategories
 
       guardian.ensure_can_manage_mod_messages!
       ensure_feature!(:mod_topic_private_notes_enabled)
+      ensure_note_visible!(topic)
 
       raw = params[:raw].to_s.strip
       raise Discourse::InvalidParameters.new(:raw) if raw.empty?
@@ -212,6 +214,7 @@ module ::DiscourseModCategories
 
       guardian.ensure_can_manage_mod_messages!
       ensure_feature!(:mod_topic_private_notes_enabled)
+      ensure_note_visible!(topic)
 
       reply_id = params[:reply_id].to_s
       with_note_lock(topic) do
@@ -235,6 +238,7 @@ module ::DiscourseModCategories
 
       guardian.ensure_can_manage_mod_messages!
       ensure_feature!(:mod_topic_private_notes_enabled)
+      ensure_note_visible!(topic)
       ensure_can_touch_note_entry!(topic.custom_fields[TOPIC_PRIVATE_NOTE_USER_FIELD])
 
       topic.custom_fields[TOPIC_PRIVATE_NOTE_FIELD] = ""
@@ -285,6 +289,7 @@ module ::DiscourseModCategories
       targets_field = DiscourseModCategories::POST_WHISPER_TARGETS_FIELD
       groups_field = DiscourseModCategories::POST_WHISPER_TARGET_GROUPS_FIELD
       badges_field = DiscourseModCategories::POST_WHISPER_TARGET_BADGES_FIELD
+      admins_only_field = DiscourseModCategories::POST_WHISPER_ADMINS_ONLY_FIELD
 
       if armed
         cap = DiscourseModCategories::MAX_WHISPER_TARGETS
@@ -302,7 +307,12 @@ module ::DiscourseModCategories
         post.custom_fields[targets_field] = user_ids
         post.custom_fields[groups_field] = group_ids
         post.custom_fields[badges_field] = badge_ids
+        # an admin's whisper is the admins' (moderators only as targets)
+        post.custom_fields[admins_only_field] = true if current_user.admin?
         post.save_custom_fields(true)
+        if !current_user.admin?
+          ::PostCustomField.where(post_id: post.id, name: admins_only_field).destroy_all
+        end
 
         # Explicitly targeted non-staff users may whisper back to staff in
         # this topic. Being a participant grants no visibility at all.
@@ -318,7 +328,7 @@ module ::DiscourseModCategories
         # enough — the rows have to be physically removed.
         ::PostCustomField.where(
           post_id: post.id,
-          name: [targets_field, groups_field, badges_field],
+          name: [targets_field, groups_field, badges_field, admins_only_field],
         ).destroy_all
         post.reload
       end
@@ -351,6 +361,7 @@ module ::DiscourseModCategories
 
       guardian.ensure_can_manage_mod_messages!
       ensure_feature!(:mod_note_view_tracking_enabled)
+      ensure_note_visible!(topic)
 
       # No-op if there's no note to view — keeps stray refresh-on-mount
       # pings from creating viewer rows on topics that never had a note.
@@ -385,7 +396,7 @@ module ::DiscourseModCategories
         topic.save_custom_fields(true)
       end
 
-      render json: { viewers: serialized_note_viewers(viewers) }
+      render json: { viewers: DiscourseModCategories::NoteThread.viewers(viewers) }
     end
 
     # Marks the current user's custom mod-note + whisper notifications for
@@ -446,11 +457,7 @@ module ::DiscourseModCategories
       return render json: { marked: 0 } unless SiteSetting.mod_auto_mark_notifications_seen
 
       scope =
-        ::Notification.where(
-          user_id: current_user.id,
-          notification_type: ::Notification.types[:custom],
-          read: false,
-        ).where("data LIKE ?", "%\"mod_note\":true%")
+        DiscourseModCategories::StaffNotifier.mod_notes_for(current_user.id).where(read: false)
 
       reviewable_id = params[:reviewable_id].to_s
       if reviewable_id =~ /\A\d+\z/
@@ -551,8 +558,20 @@ module ::DiscourseModCategories
         Topic
           .includes(:category)
           .where(id: topic_ids)
-          .select { |topic| guardian.can_see_topic?(topic) }
+          .select do |topic|
+            guardian.can_see_topic?(topic) &&
+              !DiscourseModCategories::NoteThread.hidden_from?(topic, current_user)
+          end
           .index_by(&:id)
+      # The note fields of all of them in one query, not one per topic.
+      Topic.preload_custom_fields(
+        topics_by_id.values,
+        [
+          TOPIC_PRIVATE_NOTE_FIELD,
+          TOPIC_PRIVATE_NOTE_REPLIES_FIELD,
+          TOPIC_PRIVATE_NOTE_ACTIVITY_FIELD,
+        ],
+      )
       topic_notes =
         topic_ids
           .map do |id|
@@ -581,9 +600,8 @@ module ::DiscourseModCategories
       # is NOT "note" or "reply" (those are already covered by the
       # topic-attached feed above, derived from the topic custom field).
       event_rows =
-        ::Notification
-          .where(user_id: current_user.id, notification_type: ::Notification.types[:custom])
-          .where("data LIKE ?", "%\"mod_note\":true%")
+        DiscourseModCategories::StaffNotifier
+          .mod_notes_for(current_user.id)
           .where(
             "data NOT LIKE ? AND data NOT LIKE ?",
             "%\"mod_note_kind\":\"note\"%",
@@ -659,13 +677,9 @@ module ::DiscourseModCategories
       # `data` column distinguishes our notifications from other custom
       # ones so we only touch our own rows.
       marked =
-        Notification
-          .where(
-            user_id: current_user.id,
-            notification_type: Notification.types[:custom],
-            read: false,
-          )
-          .where("data LIKE ?", "%\"mod_note\":true%")
+        DiscourseModCategories::StaffNotifier
+          .mod_notes_for(current_user.id)
+          .where(read: false)
           .update_all(read: true)
 
       # Push the recalculated bell counts to every open tab so they refresh
@@ -722,6 +736,8 @@ module ::DiscourseModCategories
       raise Discourse::InvalidAccess unless current_user&.staff?
 
       post = topic.posts.find_by(id: params[:post_id])
+      # not a whisper they can't see (an admin's, for a moderator)
+      post = nil if post && !DiscourseModCategories::Whisper.visible_to?(post, current_user)
       unless post && DiscourseModCategories::Whisper.whisper?(post)
         raise Discourse::InvalidParameters.new(
                 I18n.t("discourse_mod_categories.whisper.add_participant_needs_whisper"),
@@ -759,10 +775,6 @@ module ::DiscourseModCategories
 
     private
 
-    def ensure_module_enabled
-      raise Discourse::NotFound unless DiscourseModCategories.enabled?
-    end
-
     # Every topic endpoint works only on topics the caller can see: a
     # moderator must not set a footer, reply approval, note or checklist on
     # (or read the note of) a private message or restricted topic they can't
@@ -777,22 +789,20 @@ module ::DiscourseModCategories
       end
     end
 
-    def find_topic!
-      topic = Topic.find_by(id: params[:topic_id])
-      raise Discourse::NotFound if topic.nil? || !guardian.can_see_topic?(topic)
-      topic
-    end
-
     # 404s when a per-feature toggle is off — same shape the whisper
     # endpoints already use for their master switch.
-    def ensure_feature!(setting)
-      raise Discourse::NotFound unless SiteSetting.public_send(setting)
-    end
-
     # Note-thread entries are editable/deletable by their author and by
     # admins; other moderators only when the site explicitly opts in via
     # mod_moderators_can_edit_others_notes (default off — previously any
     # moderator could silently rewrite a colleague's note).
+    # An admin's note thread doesn't exist for a moderator: not to read, reply
+    # to, edit, delete or write over
+    def ensure_note_visible!(topic)
+      if DiscourseModCategories::NoteThread.hidden_from?(topic, current_user)
+        raise Discourse::NotFound
+      end
+    end
+
     def ensure_can_touch_note_entry!(author_id)
       return if current_user.admin?
       return if author_id.to_i == current_user.id
@@ -844,40 +854,12 @@ module ::DiscourseModCategories
     # MessageBus channel core uses for flags/replies. Creating a
     # `Notification` row alone only fills the bell list — it never pops up.
     def notify_staff_of_note(topic)
-      note = topic.custom_fields[TOPIC_PRIVATE_NOTE_FIELD].to_s
-      note_url = "#{topic.relative_url}/#{topic.highest_post_number}#mod-private-note"
-
-      DiscourseModCategories::StaffNotifier
-        .staff_recipients(except: current_user, topic: topic)
-        .each do |staff_user|
-          data = {
-            topic_title: topic.title,
-            display_username: current_user.username,
-            # Stable marker the frontend renderer keys off to recognize THIS
-            # custom notification as a moderator note.
-            mod_note: true,
-            mod_note_kind: "note",
-            excerpt: note.truncate(300),
-            url: note_url,
-            message: "discourse_mod_categories.note_notification",
-            title: "discourse_mod_categories.note_notification_title",
-          }
-
-          Notification.create!(
-            notification_type: Notification.types[:custom],
-            user_id: staff_user.id,
-            topic_id: topic.id,
-            post_number: topic.highest_post_number,
-            high_priority: true,
-            data: data.to_json,
-          )
-
-          publish_note_alert(staff_user, topic, note, note_url)
-          # The standard /notifications poll picks up the new unread row so
-          # both the bell dot and the in-dropdown shield-tab pip refresh
-          # together. No separate /mod-note-unread-count channel is needed.
-          staff_user.publish_notifications_state
-        end
+      notify_staff_of_thread(
+        topic,
+        kind: "note",
+        text: topic.custom_fields[TOPIC_PRIVATE_NOTE_FIELD].to_s,
+        url: "#{topic.relative_url}/#{topic.highest_post_number}#mod-private-note",
+      )
     end
 
     # Sends a notification for a single reply in the moderator-note thread.
@@ -887,23 +869,44 @@ module ::DiscourseModCategories
     # of looking like duplicate "note added" rows.
     def notify_staff_of_reply(topic, reply)
       reply_id = reply["id"].to_s
-      reply_raw = reply["raw"].to_s
-      reply_url =
-        "#{topic.relative_url}/#{topic.highest_post_number}#mod-private-note-reply-#{reply_id}"
+      notify_staff_of_thread(
+        topic,
+        kind: "reply",
+        text: reply["raw"].to_s,
+        url:
+          "#{topic.relative_url}/#{topic.highest_post_number}#mod-private-note-reply-#{reply_id}",
+        extra: {
+          reply_id: reply_id,
+        },
+      )
+    end
+
+    # A bell row and a live pop-up for each staff member who may see the
+    # topic. A note and a reply differ only in their kind, text and link,
+    # the reply's id, and the words ("added a note" / "replied to").
+    def notify_staff_of_thread(topic, kind:, text:, url:, extra: {})
+      key = kind == "reply" ? "note_reply_notification" : "note_notification"
+      excerpt = text.truncate(300)
 
       DiscourseModCategories::StaffNotifier
-        .staff_recipients(except: current_user, topic: topic)
+        .staff_recipients(
+          except: current_user,
+          topic: topic,
+          admins_only: DiscourseModCategories::NoteThread.admins_only?(topic),
+        )
         .each do |staff_user|
           data = {
             topic_title: topic.title,
             display_username: current_user.username,
+            # Stable marker the frontend renderer keys off to recognize THIS
+            # custom notification as a moderator note.
             mod_note: true,
-            mod_note_kind: "reply",
-            reply_id: reply_id,
-            excerpt: reply_raw.truncate(300),
-            url: reply_url,
-            message: "discourse_mod_categories.note_reply_notification",
-            title: "discourse_mod_categories.note_reply_notification_title",
+            mod_note_kind: kind,
+            **extra,
+            excerpt: excerpt,
+            url: url,
+            message: "discourse_mod_categories.#{key}",
+            title: "discourse_mod_categories.#{key}_title",
           }
 
           Notification.create!(
@@ -915,16 +918,24 @@ module ::DiscourseModCategories
             data: data.to_json,
           )
 
-          publish_reply_alert(staff_user, topic, reply_raw, reply_url)
-          staff_user.publish_notifications_state
+          publish_note_alert(
+            staff_user,
+            topic,
+            excerpt,
+            url,
+            "discourse_mod_categories.#{key}_alert",
+          )
+          # Core publishes the new unread count once the row commits, which
+          # refreshes the bell dot and the shield-tab pip together.
         end
     end
 
     # Fires the small live notification pop-up for one staff member. The
     # payload mirrors `PostAlerter.create_notification_alert`, but carries an
     # explicit `translated_title` so the pop-up text clearly names a
-    # moderator note, and a `post_url` pointing straight at the note.
-    def publish_note_alert(staff_user, topic, note, note_url)
+    # moderator note (or a reply to one), and a `post_url` pointing straight
+    # at it.
+    def publish_note_alert(staff_user, topic, excerpt, url, title_key)
       return if staff_user.suspended?
       return unless staff_user.allow_live_notifications?
 
@@ -933,52 +944,13 @@ module ::DiscourseModCategories
         topic_title: topic.title,
         topic_id: topic.id,
         post_number: topic.highest_post_number,
-        excerpt: note.truncate(300),
+        excerpt: excerpt,
         username: current_user.username,
-        post_url: note_url,
-        translated_title:
-          I18n.t(
-            "discourse_mod_categories.note_notification_alert",
-            username: current_user.username,
-            topic: topic.title,
-          ),
+        post_url: url,
+        translated_title: I18n.t(title_key, username: current_user.username, topic: topic.title),
       }
 
       MessageBus.publish("/notification-alert/#{staff_user.id}", payload, user_ids: [staff_user.id])
-    end
-
-    # Per-reply variant of publish_note_alert — the excerpt is the reply body
-    # so a stack of replies pops up as distinct toasts, and the title says
-    # "replied to" so the recipient can tell a reply from the original note.
-    def publish_reply_alert(staff_user, topic, reply_raw, reply_url)
-      return if staff_user.suspended?
-      return unless staff_user.allow_live_notifications?
-
-      payload = {
-        notification_type: Notification.types[:custom],
-        topic_title: topic.title,
-        topic_id: topic.id,
-        post_number: topic.highest_post_number,
-        excerpt: reply_raw.truncate(300),
-        username: current_user.username,
-        post_url: reply_url,
-        translated_title:
-          I18n.t(
-            "discourse_mod_categories.note_reply_notification_alert",
-            username: current_user.username,
-            topic: topic.title,
-          ),
-      }
-
-      MessageBus.publish("/notification-alert/#{staff_user.id}", payload, user_ids: [staff_user.id])
-    end
-
-    def private_note_author(topic)
-      user_id = topic.custom_fields[TOPIC_PRIVATE_NOTE_USER_FIELD]
-      user = user_id && User.find_by(id: user_id)
-      return nil unless user
-
-      { username: user.username, name: user.name, avatar_template: user.avatar_template }
     end
 
     # Reads the topic's reply thread, backfilling a stable `id` onto any
@@ -995,28 +967,10 @@ module ::DiscourseModCategories
     def note_thread_json(topic)
       {
         private_note: topic.custom_fields[TOPIC_PRIVATE_NOTE_FIELD].to_s,
-        private_note_author: private_note_author(topic),
+        private_note_author: DiscourseModCategories::NoteThread.author(topic),
         private_note_created_at: topic.custom_fields[TOPIC_PRIVATE_NOTE_CREATED_AT_FIELD],
-        replies: serialized_note_replies(topic),
+        replies: DiscourseModCategories::NoteThread.replies(topic),
       }
-    end
-
-    def serialized_note_replies(topic)
-      note_replies(topic).map do |entry|
-        author = entry["user_id"] && User.find_by(id: entry["user_id"])
-        {
-          id: entry["id"],
-          raw: entry["raw"].to_s,
-          created_at: entry["created_at"],
-          author:
-            author &&
-              {
-                username: author.username,
-                name: author.name,
-                avatar_template: author.avatar_template,
-              },
-        }
-      end
     end
 
     # Strips/dedupes ID arrays sent by the composer for whisper target
@@ -1045,21 +999,6 @@ module ::DiscourseModCategories
             &:to_i
           ),
       }
-    end
-
-    # Shape returned by record_note_view — mirrors the :topic_view
-    # serializer's `mod_topic_note_viewers` so the frontend can swap the
-    # one for the other without a topic reload.
-    def serialized_note_viewers(viewers)
-      Array(viewers).map do |entry|
-        {
-          user_id: entry["user_id"],
-          username: entry["username"],
-          name: entry["name"],
-          avatar_template: entry["avatar_template"],
-          viewed_at: entry["viewed_at"],
-        }
-      end
     end
   end
 end

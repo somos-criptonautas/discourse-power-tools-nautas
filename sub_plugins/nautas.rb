@@ -23,7 +23,24 @@ on(:before_create_post) do |post, opts|
   post.errors.add(:base, I18n.t("nautas.category_checklist.required", category: category.name))
 end
 
+# Upstream's participation badges are seeded on every rebuild and switch on
+# with their modules; here they also need jtech_badges_enabled.
+upstream_badge_switches = DiscourseJtechBadges::SWITCHES
+DiscourseJtechBadges.send(:remove_const, :SWITCHES)
+DiscourseJtechBadges.const_set(
+  :SWITCHES,
+  upstream_badge_switches
+    .transform_values { |on| -> { SiteSetting.jtech_badges_enabled && on.call } }
+    .freeze,
+)
+
 after_initialize do
+  on(:site_setting_changed) do |name|
+    if name == :jtech_badges_enabled
+      DiscourseJtechBadges::SWITCHES.each_key { |set| DiscourseJtechBadges.refresh!(set) }
+    end
+  end
+
   register_category_custom_field_type(NautasCategoryChecklist::FIELD, :json)
   register_user_custom_field_type(NautasCategoryChecklist::USER_FIELD, :json)
 

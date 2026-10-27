@@ -11,6 +11,8 @@ export interface BootUser {
   moderator: boolean;
   trust_level: number;
   can_send_private_messages: boolean;
+  can_tag_topics: boolean;
+  can_create_tag: boolean;
   can_review: boolean;
   reviewable_count: number;
   unread_notifications: number;
@@ -19,6 +21,8 @@ export interface BootUser {
   new_personal_messages_notifications_count: number;
   reqpm_available: boolean;
   reqpm_incoming_count: number;
+  // 1 while Vote Week is open and this voter hasn't voted.
+  mod_election_vote_due: number;
   can_pair_devices: boolean;
   second_factor_enabled: boolean;
 }
@@ -36,6 +40,10 @@ export interface BootCategory {
   read_restricted: boolean;
   position: number;
   subcategory_ids?: number[];
+  // What a new topic here needs. A group's name is only there for people
+  // who can edit the category.
+  minimum_required_tags?: number;
+  required_tag_groups?: Array<{ name?: string; min_count: number }>;
 }
 
 export interface AuthProvider {
@@ -77,6 +85,7 @@ export interface BootSettings {
   reqpmCountryCode: string;
   leaderboardId: number;
   openLinksHere: boolean;
+  modElectionsEnabled: boolean;
   tagsEnabled: boolean;
   maxPostLength: number;
   minPostLength: number;
@@ -139,6 +148,7 @@ const DEFAULTS: BootSettings = {
   reqpmCountryCode: "1",
   leaderboardId: 0,
   openLinksHere: false,
+  modElectionsEnabled: false,
   tagsEnabled: false,
   maxPostLength: 32000,
   minPostLength: 1,

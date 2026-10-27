@@ -89,6 +89,28 @@ en:
       icon site setting in the web manifest only; turn this off to use that
       upload instead. Reinstall the app to pick up a change.
 
+    jtech_trust_level_flair: Show each member's trust level as their avatar
+      flair when they haven't picked one, using the flair of their highest
+      trust level group that has one (set the flair on the trust level groups
+      under Groups). It moves up and down with their trust level. A member who
+      picks another flair, or takes this one off, under Preferences → Account
+      keeps their choice. Turning it on sets it for everyone within a few
+      minutes; turning it off leaves the flairs it gave, which members can
+      change.
+    jtech_badge_thresholds: Lower the top rungs of core's badge ladders to
+      what members here actually reach — likes on a post or topic (15 and 20
+      instead of 25 and 50), visitors from shared links, clicks on posted
+      links, Admired, the daily like limit, visit streaks (30 and 100 days
+      instead of 100 and 365) and solutions (3, 10 and 25 instead of 10, 50
+      and 150). Core puts its numbers back on every rebuild, so this sets them
+      again after. Turning it off takes effect on the next rebuild, and
+      badges whose numbers go back up are taken away on the next daily badge
+      run.
+    jtech_badges_enabled: Turn on the badges for taking part in this plugin's
+      modules (elections, REQ-PM, listings, Dumbcourse, pop-ups). They are
+      created on every rebuild either way, switched off until this is on; each
+      set also needs its module on.
+
     # ── Jtech — Dislike ────────────────────────────────────────────────────
     discourse_no_likes_enabled: Turn on phantom reactions. When off, likes and
       reactions behave exactly as Discourse ships them in every category and
@@ -384,7 +406,10 @@ en:
 
     mod_notify_whisper_targets: Sends a bell notification to a whisper's
       audience when one is posted, and to a user when staff add them to a
-      whisper. Off means whispers still work but arrive silently.
+      whisper. Members of an automatic group the whisper is to (a trust level,
+      everyone, staff) can read it but aren't notified, so a whisper to a
+      trust level doesn't ring hundreds of bells. Off means whispers still
+      work but arrive silently.
 
     mod_auto_mark_notifications_seen: Opening a topic, or the review queue,
       marks THIS plugin's own note and whisper notifications for it as read.
@@ -422,7 +447,10 @@ en:
       unread post for the non-staff users, groups and badge holders it is
       addressed to (staff always see whispers as new). Off, only its
       notification tells them about it. Whispers never bump a topic or count
-      as new for anyone outside their audience either way.
+      as new for anyone outside their audience either way. On, a whisper also
+      stops leaving a topic unread for people who can't see it but are in
+      whispers_allowed_groups (a moderator under an admin's whisper, a group
+      member it doesn't name), because their last read moves past it.
 
     # ── Jtech — Translator tweaks ──────────────────────────────────────────
     translator_tweaks_enabled: Master switch for the tweak to the
@@ -713,11 +741,20 @@ en:
       Discourse copy, because a bot cannot edit somebody else's Telegram
       message.
 
-    disteleplus_bridge_deletes: Deleting a bridged chat message also deletes
-      it in Telegram. The bot needs delete permission in the group, and
-      Telegram only allows a bot to delete messages under 48 hours old;
-      failures are logged to /logs. Deletions made in Telegram are never
-      reported to bots at all, so they can never be mirrored back.
+    disteleplus_bridge_deletes: Deleting a bridged chat message deletes it
+      on the other side too, whichever side it was written on. Here to
+      Telegram the bot needs delete permission in the group, and Telegram
+      only lets a bot delete messages under 48 hours old; failures are logged
+      to /logs. Telegram to here needs disteleplus_deletion_check_chat_id.
+
+    disteleplus_deletion_check_chat_id: Telegram never tells a bot that a
+      message was deleted, so to delete here what was deleted on Telegram the
+      bridge checks. Make a private channel, add the bot as an admin that can
+      post and delete messages, and put the channel's id here (it starts with
+      -100). Every five minutes the bot copies the bridged messages into it
+      and deletes the copies at once; one Telegram can't find was deleted
+      there, and is deleted here. The last hour's messages are checked each
+      time, a week's about hourly. Empty, nothing is checked.
 
     disteleplus_bridge_polls: Bridge Telegram polls into chat as a text
       snapshot of the question and options, rewritten as votes come in so the
@@ -947,7 +984,7 @@ en:
       deleted.
     listing_format_topics: 'Topics where the format applies. Use the topic''s
       number or paste its address (like
-      https://jtechforums.org/t/hardware-phones-computers-for-sale-thread/32).
+      https://forum.example.com/t/phones-for-sale/32).
       New posts must have every field; edits to older posts only have to keep
       the fields they already had, and can''t add outside links.'
     listing_format_fields: 'Sections each listing needs. The reply form posts
@@ -985,6 +1022,82 @@ en:
       without following the format, for reminders and staff notes. They also
       keep the Reply button on listings and use the plain composer.
 
+    # ── Jtech — Mod elections ──────────────────────────────────────────────
+    mod_elections_enabled: Lets the forum elect its moderators. Every few
+      months (see the months below) nominations open, then Vote Week runs,
+      and members rank the candidates. An admin checks the ballots and
+      publishes the results from the Mod elections tab, which makes the
+      winners moderators and removes the moderators who weren't elected.
+      Admins are never on the ballot and never vote. Turning this off stops
+      the schedule and hides the page; nothing already published changes.
+    mod_elections_seats: How many moderators each election picks. Every seat
+      is up in every election.
+    mod_elections_view_allowed_groups: Groups that can open the elections page
+      (the candidates, their statements, the ballot and the results) and get
+      its sidebar link, banner and Dumbcourse menu entry. Trust level 1 by
+      default. Logged-out visitors are sent to log in. Admins and moderators
+      always can. Only people who can open the page are put on the voter list
+      or can run, and someone who leaves these groups during an election
+      loses their vote and their place on the ballot. Running and voting have
+      their own rules below.
+    mod_elections_schedule_months: Months an election starts in. Nominations
+      open at midnight on the 1st, in the time zone below.
+    mod_elections_timezone: Time zone the calendar runs in, as a name like
+      America/New_York or Asia/Jerusalem.
+    mod_elections_nomination_days: How long nominations stay open. Sitting
+      moderators are on the ballot automatically and can drop out until
+      nominations close.
+    mod_elections_nomination_extension_days: When nominations close with no
+      more candidates than seats, there's nothing to vote on, so they stay
+      open this many more days, once, for others to run. Vote Week moves back
+      by the same. If there are still no more candidates than seats after
+      that, there's no Vote Week; they're elected unopposed when an admin
+      publishes the results. 0 skips the extra days. Closing nominations
+      early from the Mod elections tab never extends them.
+    mod_elections_voting_days: How long Vote Week lasts, starting when
+      nominations close. Voters can change their ballot until it ends.
+    mod_elections_candidate_min_trust_level: Lowest trust level that can
+      run. Sitting moderators can always run. A candidate who drops below it
+      during the election, even in Vote Week, comes off the ballot.
+    mod_elections_candidate_min_account_age_days: How old an account has to
+      be to run.
+    mod_elections_candidate_clean_record_days: Accounts an admin suspended
+      or silenced within this many days can't run. A moderator's don't count,
+      since sitting moderators are candidates too. 0 only checks whether they
+      are suspended or silenced right now.
+    mod_elections_statement_max_length: Longest statement a candidate can
+      write about themselves. 0 turns statements off.
+    mod_elections_voter_min_account_age_days: How old an account has to be,
+      when nominations open, to vote. The voter list is fixed at that moment,
+      and a vote counts as much as the voter's trust level then, up to 3
+      (trust level 4 counts 3, trust level 0 doesn't vote). Someone suspended, silenced, anonymized or dropped to
+      trust level 0 since can't vote, and if they still can't when Vote Week
+      ends, a ballot they cast is set aside.
+    mod_elections_moderators_cannot_vote: Sitting moderators don't vote. They're
+      on the ballot, so this stops them choosing who joins or replaces them.
+      With it on, they're left off the voter list when nominations open,
+      can't cast a ballot, and the ballot of anyone who is a moderator when
+      Vote Week ends is set aside (one cast before it was turned on too).
+    mod_elections_former_mods_keep_tl4: Moderators who leave their seat
+      (lose, step down or don't run) keep trust level 4, locked, so it marks
+      people who were moderators. Trust level 4 can still edit posts and
+      close, move and rename topics, so former moderators keep those powers.
+      Winners are locked at trust level 4 when they take their seat. A
+      moderator removed for abuse goes back to trust level 3 either way.
+    mod_elections_strikes_before_tl3: A sitting moderator who runs again and
+      loses gets a strike. At this many strikes they go back to trust level
+      3, unlocked, and the usual trust level 3 rules apply again. Stepping
+      down, not running, and losing while not in a seat give no strike.
+    mod_elections_category: Category for each election's topic, where the
+      forum is told when nominations open, who is running and who won. Leave
+      blank for no topic.
+    mod_elections_notify_voters: Sends voters a notification when Vote Week
+      opens, and again a day before it ends to those who haven't voted.
+    mod_elections_invite_candidates: Sends a notification to every member who
+      can run when nominations open, and again if nominations stay open
+      longer because not enough people are running. Sitting moderators are
+      told they're on the ballot either way.
+
     placeholder:
       discourse_another_email_smtp_address: smtp.example.com
       discourse_another_email_smtp_username: username@example.com
@@ -1021,6 +1134,7 @@ en:
       disteleplus_auto_match_usernames: identity|impersonate|spoof|security
       reqpm_enabled: reqpm|req-pm|contact|phone|whatsapp|private message|pm|dm
       reqpm_setup_prompt: reqpm|onboarding|required field|contact card
+      mod_elections_enabled: election|vote|voting|moderator|stv|ballot
 
     errors:
       translator_tweaks_invalid_worker_url: must be a full https:// URL with
@@ -1028,6 +1142,8 @@ en:
         or blank to call Google directly
       reqpm_default_country_code_invalid: must be a calling code of up to 4
         digits, like 1 or 972 — or blank
+      mod_elections_timezone_invalid: must be a time zone name like
+        America/New_York or Asia/Jerusalem
       dumbcourse_base_path_invalid: must be a single URL segment made of
         lowercase letters, digits, hyphens and underscores, and must not be a
         reserved Discourse path
@@ -1045,6 +1161,7 @@ en:
   discourse_mod_categories:
     whisper:
       first_post_not_allowed: "A new topic can't start with or quote a whisper."
+      move_first_post_not_allowed: "A whisper can't be a topic's first post. Move an earlier public post with it, or move it to the end of an existing topic."
       add_participant_needs_whisper: "Choose a whisper post to add the user to."
     note_notification_alert: '%{username} added a moderator note on "%{topic}"'
     note_reply_notification_alert: '%{username} replied to a moderator note on "%{topic}"'
@@ -1092,3 +1209,228 @@ en:
         email: "That doesn't look like an email address."
         url: "That doesn't look like a web address (http or https)."
         handle: "That doesn't look like a username (letters, numbers, . _ -)."
+
+  mod_elections:
+    title: "Mod elections"
+    notifications:
+      on_ballot: "You're on the ballot. You can drop out until nominations close."
+      can_run: "Nominations are open, and you can run for moderator."
+      nominations_extended: "There are no more candidates than seats, so nominations stay open longer. You can still run."
+      vote_skipped: "There are no more candidates than seats, so there's no Vote Week. Check the preview and publish the results."
+      voting_open: "Vote Week is open. Rank the candidates."
+      reminder: "Vote Week ends tomorrow, and you haven't voted."
+      closed: "Voting has closed. Check the ballots and publish the results."
+      results: "The results are in."
+      disqualified: "An admin took you off the ballot."
+      ineligible: "You can't run any more, so you're off the ballot."
+      seat_filled: "A seat opened up and the count gave it to you. You're a moderator."
+      schedule_blocked: "The next scheduled election can't start while this one is unfinished. Publish or cancel it, or that election is skipped."
+    topic:
+      title: "Mod elections: %{month}"
+      nominations_open: |
+        Nominations for moderator are open. Sitting moderators are on the ballot already; anyone else who can run signs up on the elections page.
+
+        Vote Week runs from %{voting_open} to %{voting_close}.
+
+        [Run, or see who's running](%{url})
+      nominations_extended: |
+        There are no more candidates than seats, so there's nothing to vote on yet. Nominations stay open until %{voting_open}, and Vote Week runs from then to %{voting_close}.
+
+        [Run, or see who's running](%{url})
+      vote_skipped: |
+        There are no more candidates than seats, so there's no Vote Week. Elected unopposed:
+        %{candidates}
+
+        They take their seats when an admin publishes the results.
+      vote_skipped_nobody: "Nobody ran, so there's no Vote Week."
+      voting_open: |
+        Vote Week is open until %{voting_close}. Rank the candidates on the elections page: your vote counts as much as your trust level, up to 3.
+
+        On the ballot:
+        %{candidates}
+
+        [Vote](%{url})
+      count:
+        winners: "The results are in. Elected:"
+        winners_unopposed: "The results are in. There were no more candidates than seats, so there was no Vote Week. Elected unopposed:"
+        title: "How the count went"
+        summary: "Seats: **%{seats}** · Ballots counted: **%{ballots}**, worth **%{total} votes** (a ballot's weight comes from its voter's trust level) · Votes to win a seat: **%{quota}**, %{quota_share} of all votes."
+        first_title: "First choices"
+        first_intro: "Every ballot's weight on its first choice, before anything moved."
+        stages_title: "Stage by stage"
+        stage_first: "First choices counted."
+        stage_surplus: "%{name}'s extra votes move on."
+        stage_exclusion:
+          one: "%{names} is out."
+          other: "%{names} are out."
+        stage_unopposed: "The rest are elected."
+        detail_surplus: "The votes they didn't need went to their voters' next choices, at a reduced value."
+        detail_exclusion:
+          one: "Fewest votes: their ballots went to their voters' next choices."
+          other: "None of them had any votes, so they went out together."
+        detail_unopposed: "No more candidates were left than open seats."
+        elected: "Elected: %{names}."
+        elected_with: "%{name} with %{votes} votes"
+        final_title: "Where everyone finished"
+        final_intro: "Winners at the votes that elected them, in the order they were elected; everyone else at the votes they ended with."
+        candidate: "Candidate"
+        votes: "Votes"
+        share: "Share"
+        outcome: "Result"
+        elected_at: "Elected at stage %{stage}"
+        out_at: "Out at stage %{stage}"
+        not_elected: "Not elected"
+        exhausted: "By the end, %{votes} votes (%{share}) were on ballots with no more choices."
+        ties_title: "Ties"
+        ties:
+          exclusion_earlier_stage: "Stage %{stage}: %{names} were level on the fewest votes. %{chosen} had fewer at stage %{decided_at}, so went out."
+          exclusion_lot: "Stage %{stage}: %{names} were level on the fewest votes at every stage, so a lot put %{chosen} out (seed %{seed})."
+          surplus_earlier_stage: "Stage %{stage}: %{names} had equal extra votes. %{chosen} had more at stage %{decided_at}, so theirs moved first."
+          surplus_lot: "Stage %{stage}: %{names} had equal extra votes and were level at every stage, so a lot moved %{chosen}'s first (seed %{seed})."
+          order_earlier_stage: "Stage %{stage}: %{names} were elected on equal votes. %{chosen} had more at stage %{decided_at}, so is listed ahead."
+          order_lot: "Stage %{stage}: %{names} were elected on equal votes and were level at every stage, so a lot listed %{chosen} ahead (seed %{seed})."
+        every_stage: "Every stage in numbers"
+        no_more_choices: "No more choices"
+        link: "[Every stage of the count, on the elections page](%{url})"
+      cancelled: "This election was cancelled. The moderators stay as they are."
+      changed:
+        one: "An admin changed this election. It's for %{count} seat; nominations close %{voting_open}, and Vote Week runs from then to %{voting_close}."
+        other: "An admin changed this election. It's for %{count} seats; nominations close %{voting_open}, and Vote Week runs from then to %{voting_close}."
+      changed_voting:
+        one: "An admin changed this election. It's for %{count} seat, and Vote Week ends %{voting_close}."
+        other: "An admin changed this election. It's for %{count} seats, and Vote Week ends %{voting_close}."
+      countback: "A moderator left their seat mid-term. Counting the same ballots again without them gives the seat to %{user}."
+      nobody: "Nobody"
+      deleted_user: "(deleted account)"
+    errors:
+      not_found: "That election isn't there any more."
+      cannot_run: "They can't run any more (their trust level, a suspension or their account), so they'd come straight off again. Fix that first, then put them back."
+      own_session_only: "Elections only work from your own signed-in session."
+      not_nominating: "Nominations aren't open."
+      not_voting: "Vote Week isn't open."
+      candidacy_closed: "Vote Week is over, so candidates can't change their statement or drop out any more."
+      not_allowed: "Your account can't take part right now."
+      admin: "Admins don't run or vote."
+      moderator: "Sitting moderators don't vote."
+      disqualified: "You were taken off the ballot for this election."
+      already_running: "You're already running."
+      not_running: "You're not running in this election."
+      trust_level: "You need a higher trust level to run."
+      account_age: "Your account is too new to run."
+      record: "Accounts an admin suspended or silenced recently can't run."
+      statement_too_long: "Keep your statement to %{max} characters."
+      not_on_roll: "You weren't on the voter list when nominations opened."
+      empty_ballot: "Rank at least one candidate."
+      invalid_ballot: "The ballot has changed. Reload the page and try again."
+      self_vote: "You can't vote for yourself."
+      reason_required: "Give a reason. Only admins see it, in this tab and the staff log."
+      finished: "This election is already over."
+      not_closed: "Voting hasn't closed yet."
+      count_previewed: "The count has been previewed, so the ballots are fixed: a ballot set aside now would show, in the difference between two previews, what was on it. Publish, or cancel the election."
+      no_votes: "Nobody voted. Cancel the election instead, so the moderators stay as they are."
+      not_seated: "That person isn't in a seat."
+      no_open_seat: "Every seat is taken."
+      no_replacement: "There's nobody left on the ballot to take the seat. Appoint a moderator by hand if you need one."
+      election_in_progress: "Another election is still running. Publish or cancel it first."
+      too_early: "Nominations haven't opened yet."
+      invalid_dates: "Check the dates: nominations, then Vote Week, then the close, in that order."
+      dates_in_past: "Vote Week has to start in the future, so people have time to run. Check the dates."
+      edit_in_past: "A date you change has to be in the future. Check the dates."
+      edit_closed: "Voting has closed, so the seats and dates are fixed: changing them now would change who the ballots elect. Publish, or cancel the election."
+      not_editable: "That step has already started, so its date can't change. Change only the dates still ahead."
+      invalid_seats: "Seats have to be a whole number from 1 to 99."
+      winners_cannot_serve: "%{names} can't take a seat any more (see the preview). Take them off the ballot, then publish: the count moves on to the next candidate."
+      module_off: "Mod elections are off. Turn them on in the settings below first."
+    reasons:
+      removed: "Removed as a moderator."
+      ineligible: "Can't run any more."
+      cannot_vote: "Your account couldn't vote any more when Vote Week ended."
+    telegram:
+      closed: "Voting has closed. <a href=\"%{url}\">Check the ballots and publish the results</a>."
+      vote_skipped: "There are no more candidates than seats, so there's no Vote Week. <a href=\"%{url}\">Publish the results</a>."
+      results: "The results are published. Elected: %{winners}. <a href=\"%{url}\">The count</a>"
+  badges:
+    constituent:
+      name: "Constituent"
+      description: "Voted in a moderator election"
+      long_description: "This badge is granted when the results of a moderator election you voted in are published. It shows that you voted, never how."
+    civic_duty:
+      name: "Civic Duty"
+      description: "Voted in 3 moderator elections"
+      long_description: "This badge is granted when you've voted in three moderator elections. There's one every few months, so it takes about a year."
+    candidate:
+      name: "Candidate"
+      description: "Ran for moderator"
+      long_description: "This badge is granted when nominations close and you're on the ballot in a moderator election, whether you stay in the race or not."
+    stepped_aside:
+      name: "Stepped Aside"
+      description: "Dropped out of a moderator election"
+      long_description: "This badge is granted when you drop out of a moderator election you were running in."
+    runner-up:
+      name: "Runner-up"
+      description: "Ran to the end of a moderator election without winning a seat"
+      long_description: "This badge is granted when an election's results are published and you were still on the ballot but didn't win a seat. Thanks for running."
+    elected:
+      name: "Elected"
+      description: "Won a seat in a moderator election"
+      long_description: "This badge is granted when you win a seat in a moderator election."
+    re-elected:
+      name: "Re-elected"
+      description: "Won seats in two moderator elections"
+      long_description: "This badge is granted when you've won a seat in two moderator elections."
+    former_moderator:
+      name: "Former Moderator"
+      description: "Served as a moderator"
+      long_description: "This badge is granted to members who were moderators, elected or appointed, and aren't any more."
+    business_card:
+      name: "Business Card"
+      description: "Filled in a REQ-PM contact card"
+      long_description: "This badge is granted when you add a way to reach you to your REQ-PM card, so members can ask for it instead of sending a message."
+    connected:
+      name: "Connected"
+      description: "Shared contact details through REQ-PM"
+      long_description: "This badge is granted the first time you share your contact details with someone through REQ-PM. Nobody can see who with."
+    networker:
+      name: "Networker"
+      description: "Shared contact details with 5 people through REQ-PM"
+      long_description: "This badge is granted when you've shared your contact details with five different people through REQ-PM."
+    seller:
+      name: "Seller"
+      description: "Posted a listing in the for-sale thread"
+      long_description: "This badge is granted when you post your first listing in the for-sale thread."
+    first_sale:
+      name: "First Sale"
+      description: "Marked a listing sold"
+      long_description: "This badge is granted when one of your listings in the for-sale thread is marked sold."
+    merchant:
+      name: "Merchant"
+      description: "Posted 5 listings in the for-sale thread"
+      long_description: "This badge is granted when you've posted five listings in the for-sale thread."
+    trader:
+      name: "Trader"
+      description: "Posted 10 listings in the for-sale thread"
+      long_description: "This badge is granted when you've posted ten listings in the for-sale thread."
+    flip_phone:
+      name: "Flip Phone"
+      description: "Used Dumbcourse, the forum for flip phones"
+      long_description: "This badge is granted the first time you open Dumbcourse, the light version of the forum for flip phones and old browsers, while signed in."
+    keypad_regular:
+      name: "Keypad Regular"
+      description: "Used Dumbcourse on 30 days"
+      long_description: "This badge is granted when you've opened Dumbcourse while signed in on thirty different days."
+    t9_typist:
+      name: "T9 Typist"
+      description: "Posted from Dumbcourse"
+      long_description: "This badge is granted when you write your first post or topic in Dumbcourse."
+    t9_master:
+      name: "T9 Master"
+      description: "Posted 100 times from Dumbcourse"
+      long_description: "This badge is granted when you've written a hundred posts in Dumbcourse."
+    heads_up:
+      name: "Heads Up"
+      description: "Turned on desktop pop-ups"
+      long_description: "This badge is granted when you turn on desktop pop-ups under Preferences → Account, so each new notification shows as a small card."
+    power_user:
+      name: "Power User"
+      description: "Used every JTech tool"
+      long_description: "This badge is granted when you hold Constituent, Business Card, Seller, Flip Phone and Heads Up: you've voted in an election, made a REQ-PM card, posted a listing, used Dumbcourse and turned on pop-ups."
