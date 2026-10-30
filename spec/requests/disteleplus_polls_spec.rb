@@ -5,7 +5,7 @@ require "rails_helper"
 # A room poll's backing post is readable only by the room: before, its
 # holder was an unlisted public topic that anyone could open by id.
 RSpec.describe "Disteleplus poll backing posts" do
-  fab!(:member) { Fabricate(:user, trust_level: TrustLevel[1]) }
+  fab!(:member) { Fabricate(:user, refresh_auto_groups: true) }
   fab!(:outsider) { Fabricate(:user, trust_level: TrustLevel[1]) }
   fab!(:team) { Fabricate(:group).tap { |g| g.add(member) } }
   fab!(:public_category, :category)
