@@ -17,6 +17,7 @@ export default {
     this.route("jtech-tools-mod", { path: "mod" });
     this.route("jtech-tools-dumbcourse", { path: "dumbcourse" });
     this.route("jtech-tools-translator", { path: "translator" });
+    this.route("jtech-tools-ghost-embeds", { path: "ghost-embeds" });
     this.route("jtech-tools-smart-search", { path: "smart-search" });
     this.route("jtech-tools-popups", { path: "popups" });
     this.route("jtech-tools-disteleplus", { path: "disteleplus" });

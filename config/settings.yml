@@ -528,6 +528,14 @@ jtech_translator:
       - "translator_tweaks_enabled"
 
 # ───────────────────────────────────────────────────────────────────────────
+# Jtech — Ghost embeds
+# ───────────────────────────────────────────────────────────────────────────
+jtech_ghost_embeds:
+  ghost_embeds_enabled:
+    default: false
+    client: false
+
+# ───────────────────────────────────────────────────────────────────────────
 # Jtech — Smart search (synonym query expansion)
 # ───────────────────────────────────────────────────────────────────────────
 jtech_smart_search:

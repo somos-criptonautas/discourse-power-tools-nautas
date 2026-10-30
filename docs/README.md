@@ -17,6 +17,7 @@
 | [Desktop pop-ups](features/popups.md) | Notification cards in the corner of the screen |
 | [Another SMTP](features/another-smtp.md) | Send forum mail through a different server |
 | [Translator tweaks](features/translator-tweaks.md) | A proxy for the Translator plugin's Google requests |
+| [Ghost embeds](features/ghost-embeds.md) | Blog posts imported from Ghost keep their images, callouts and link cards |
 | [JTech theme](features/jtech-theme.md) | The forum's own theme, installed with the plugin |
 
 ## Working on the plugin

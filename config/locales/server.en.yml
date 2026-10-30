@@ -452,6 +452,12 @@ en:
       whispers_allowed_groups (a moderator under an admin's whisper, a group
       member it doesn't name), because their last read moves past it.
 
+    # ── Jtech — Ghost embeds ───────────────────────────────────────────────
+    ghost_embeds_enabled: Rewrites Ghost's images, callouts and link cards when
+      a blog post is imported through Embedding. Only applies to new imports;
+      topics already imported stay as they are until imported again. Callouts
+      need the Quote Callouts theme component to show as callouts.
+
     # ── Jtech — Translator tweaks ──────────────────────────────────────────
     translator_tweaks_enabled: Master switch for the tweak to the
       upstream discourse-translator plugin. Inert unless that plugin is

@@ -762,6 +762,7 @@ en:
           mod: Mod
           dumbcourse: Dumbcourse
           translator: Translator tweaks
+          ghost_embeds: Ghost embeds
           smart_search: Smart search
           popups: Pop-ups
           disteleplus: Disteleplus
@@ -942,6 +943,7 @@ en:
           jtech_dumbcourse: Power Tools Nautas — Dumbcourse
           jtech_disteleplus: Power Tools Nautas — Disteleplus
           jtech_translator: Power Tools Nautas — Translator tweaks
+          jtech_ghost_embeds: Power Tools Nautas — Ghost embeds
           jtech_smart_search: Power Tools Nautas — Smart search
           jtech_popup_notifications: Power Tools Nautas — Desktop pop-ups
           jtech_mod_whispers: "Power Tools Nautas — Mod: Whispers"

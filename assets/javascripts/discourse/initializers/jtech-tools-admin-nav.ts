@@ -50,6 +50,10 @@ const LINKS: AdminNavLink[] = [
     route: "adminPlugins.show.jtech-tools-translator",
   },
   {
+    label: "jtech_tools.admin.tabs.ghost_embeds",
+    route: "adminPlugins.show.jtech-tools-ghost-embeds",
+  },
+  {
     label: "jtech_tools.admin.tabs.smart_search",
     route: "adminPlugins.show.jtech-tools-smart-search",
   },
