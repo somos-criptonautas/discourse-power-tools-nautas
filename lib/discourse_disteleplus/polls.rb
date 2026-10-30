@@ -94,6 +94,9 @@ module DiscourseDisteleplus
           topic_id: holder_topic.id,
           raw: message.raw,
           skip_validations: true,
+          # The holder is closed, which core only lets staff post in. The
+          # author is already allowed in the room; core's poll rights still apply.
+          skip_guardian: true,
           # The room notifies on its own; a post alert would message every
           # member of the room's groups about each poll.
           skip_jobs: true,
