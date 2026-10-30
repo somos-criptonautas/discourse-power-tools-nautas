@@ -587,6 +587,7 @@ es:
           mod: Moderación
           dumbcourse: Dumbcourse
           translator: Traductor
+          ghost_embeds: Embeds de Ghost
           smart_search: Búsqueda inteligente
           popups: Avisos emergentes
           disteleplus: Disteleplus
@@ -637,6 +638,7 @@ es:
           jtech_dumbcourse: Power Tools Nautas — Dumbcourse
           jtech_disteleplus: Power Tools Nautas — Disteleplus
           jtech_translator: Power Tools Nautas — Traductor
+          jtech_ghost_embeds: Power Tools Nautas — Embeds de Ghost
           jtech_smart_search: Power Tools Nautas — Búsqueda inteligente
           jtech_popup_notifications: Power Tools Nautas — Avisos emergentes
           jtech_mod_whispers: 'Power Tools Nautas — Moderación: Respuestas privadas'

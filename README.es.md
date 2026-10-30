@@ -26,6 +26,7 @@ El plugin de Discourse detrás de [Criptonautas](https://criptonautas.co): herra
 - **[Disteleplus](docs/features/disteleplus.md).** Una sala de chat del equipo reflejada en ambos sentidos con un grupo de Telegram, con la cola de revisión también en Telegram.
 - **[Another SMTP](docs/features/another-smtp.md).** Envía el correo del foro a través de otro servidor de correo.
 - **[Ajustes del traductor](docs/features/translator-tweaks.md).** Un proxy para las peticiones a Google del plugin Translator.
+- **[Embeds de Ghost](docs/features/ghost-embeds.md).** Las entradas importadas de Ghost conservan sus imágenes, avisos y tarjetas de enlace.
 
 También funciona junto a [discourse-category-lockdown-nautas](https://github.com/somos-criptonautas/discourse-category-lockdown-nautas): las respuestas privadas siguen visibles para su audiencia dentro de temas bloqueados.
 

@@ -26,6 +26,7 @@ The Discourse plugin behind [Criptonautas](https://criptonautas.co): moderator t
 - **[Disteleplus](docs/features/disteleplus.md).** A team chat room mirrored both ways with a Telegram group, with the review queue in Telegram too.
 - **[Another SMTP](docs/features/another-smtp.md).** Send forum email through a different mail server.
 - **[Translator tweaks](docs/features/translator-tweaks.md).** A proxy for the Translator plugin's Google requests.
+- **[Ghost embeds](docs/features/ghost-embeds.md).** Blog posts imported from Ghost keep their images, callouts and link cards.
 
 It also works alongside [discourse-category-lockdown-nautas](https://github.com/somos-criptonautas/discourse-category-lockdown-nautas): private replies stay visible to their audience inside lockdown topics.
 

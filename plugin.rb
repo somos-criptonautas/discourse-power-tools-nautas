@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # name: jtech-tools
-# about: Power Tools Nautas — Criptonautas' Discourse power tools: moderator tools, Mini-mod, Dislike, the Disteleplus Telegram bridge, REQ-PM, listing format for sale threads, mod elections, Dumbcourse, smart search, desktop pop-ups, Another SMTP and translator tweaks.
+# about: Power Tools Nautas — Criptonautas' Discourse power tools: moderator tools, Mini-mod, Dislike, the Disteleplus Telegram bridge, REQ-PM, listing format for sale threads, mod elections, Dumbcourse, smart search, desktop pop-ups, Another SMTP, translator tweaks and Ghost embeds.
 # version: 0.5.0
 # authors: TripleU, Shalom_Karr, Ars18 — Forked by Criptonautas
 # url: https://github.com/somos-criptonautas/discourse-power-tools-nautas
@@ -36,6 +36,7 @@ enabled_site_setting :jtech_enabled
   mod_categories
   dumbcourse
   translator_tweaks
+  ghost_embeds
   smart_search
   popup_notifications
   disteleplus
