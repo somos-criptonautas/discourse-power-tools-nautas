@@ -95,6 +95,16 @@ RSpec.describe "Dumbcourse app page" do
       expect(response.status).to eq(200)
       expect(boot_data["currentUser"]).to be_nil
     end
+
+    it "lists no categories to signed-out visitors when login is required" do
+      Fabricate(:category, name: "Members Only Lounge")
+      SiteSetting.login_required = true
+      get "/dumb/login"
+
+      expect(response.status).to eq(200)
+      expect(boot_data["categories"]).to eq([])
+      expect(response.body).not_to include("Members Only Lounge")
+    end
   end
 
   describe "use, for its badges" do

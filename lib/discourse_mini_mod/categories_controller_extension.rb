@@ -36,6 +36,14 @@ module DiscourseMiniMod
       position
     ].freeze
 
+    # Core attaches any upload id staff send and serializes its URL back.
+    UPLOAD_PARAMS = %i[
+      uploaded_logo_id
+      uploaded_logo_dark_id
+      uploaded_background_id
+      uploaded_background_dark_id
+    ].freeze
+
     included do
       before_action :mini_mod_narrow_create, only: :create
       before_action :mini_mod_narrow_update, only: :update
@@ -93,6 +101,13 @@ module DiscourseMiniMod
 
     def mini_mod_strip_staff_params
       STAFF_ONLY_PARAMS.each { |key| params.delete(key) }
+      # Only their own uploads: otherwise a mini-mod could walk upload ids and
+      # read back the URL of any attachment, private messages' included. A
+      # dropped id leaves the image as it was.
+      UPLOAD_PARAMS.each do |key|
+        id = params[key].presence
+        params.delete(key) if id && !Upload.exists?(id: id.to_i, user_id: current_user.id)
+      end
       if (settings = params[:category_setting_attributes]).respond_to?(:delete)
         # The review modes pair with the review group lists above, which stay
         # with staff; require_topic/reply_approval stay with the moderator.

@@ -148,6 +148,9 @@ What changed for forums running Jtech Tools. Newest first.
 
 **Permissions**
 
+- Disteleplus: polls posted in the room could be read by anyone, signed in or not, by opening their holder topic by its number; only unlisted, it sat in the first public category. It's now a message for the room's groups (following `disteleplus_allowed_groups`), so only the room and admins can read or vote. Upgrading converts the existing one. Members of those groups see it among their group's messages.
+- Mini-mod: a category moderator could set any upload as their category's logo or background, by its number, and read its link back, a private message's attachment included. Only their own uploads are taken now.
+- Dumbcourse: with `login_required` on, a logged-out visitor on the login page got the forum's category list (names, descriptions, topic counts). They get none now, as on the full site.
 - Notes: an admin's note on a topic is for admins only, with its replies. Moderators don't see it in the topic, the notes tab or their notifications, and can't reply to it, change it, delete it or write over it. An admin's note on a profile or a flag alerts admins only. A moderator's note, admins' replies included, stays every staff member's.
 - Whispers: an admin's whisper reaches moderators only when it names them, by user, the moderators group or a badge they hold; replies to it stay as private. With nobody named it's for admins only, and the composer and the post say so. Whispers written before this, and moderators' own, are unchanged.
 - Mini-mod: a category moderator could still make their private category public, hand its moderation to any group, or move it under a category they don't moderate, by sending the change to the category's slug instead of its id (`/categories/<slug>.json`). Closed: the staff-only fields are stripped and the move is checked however the category is addressed. Reported by the-curious-2025.
