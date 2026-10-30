@@ -202,7 +202,9 @@ module DiscourseDumbcourse
     def boot_payload
       site =
         begin
-          SiteSerializer.new(Site.new(guardian), scope: guardian, root: false).as_json
+          # json_for, not SiteSerializer: it strips categories for visitors
+          # when login_required is on.
+          JSON.parse(Site.json_for(guardian))
         rescue StandardError => e
           Rails.logger.warn("[Dumbcourse] site data failed: #{e.class}: #{e.message}")
           {}
