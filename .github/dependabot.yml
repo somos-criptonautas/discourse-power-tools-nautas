@@ -16,6 +16,12 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    # The lint stack follows upstream: newer versions rewrite upstream's code.
+    ignore:
+      - dependency-name: "@discourse/lint-configs"
+      - dependency-name: "eslint"
+      - dependency-name: "prettier"
+      - dependency-name: "stylelint"
     groups:
       npm:
         patterns: ["*"]
