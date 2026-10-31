@@ -62,6 +62,6 @@ Lee las [reglas del repositorio](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md) 
 
 ## Licencia
 
-[GPL-3.0](LICENSE), heredada de [JtechTools](https://github.com/TripleU613/JtechTools). Autores originales: TripleU, Shalom Karr y Ars18.
+[GPL-3.0](LICENSE), heredada de [JtechTools](https://github.com/TripleU613/JtechTools). Autores originales: TripleU, Shalom Karr y Ars18. Modificado por Criptonautas desde 2026, con cada cambio en el historial de git.
 
-Texto de este README bajo [CC BY-NC-SA 4.0](CC-BY-NC-SA-4.0.txt).
+Nuestros agregados a este README están bajo [CC BY-NC-SA 4.0](CC-BY-NC-SA-4.0.txt); el texto del proyecto original conserva su licencia.
