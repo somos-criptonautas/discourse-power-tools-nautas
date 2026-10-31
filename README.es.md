@@ -26,6 +26,7 @@ El plugin de Discourse detrás de [Criptonautas](https://criptonautas.co): herra
 - **[Disteleplus](docs/features/disteleplus.md).** Una sala de chat del equipo reflejada en ambos sentidos con un grupo de Telegram, con la cola de revisión también en Telegram.
 - **[Another SMTP](docs/features/another-smtp.md).** Envía el correo del foro a través de otro servidor de correo.
 - **[Ajustes del traductor](docs/features/translator-tweaks.md).** Un proxy para las peticiones a Google del plugin Translator.
+- **[Embeds de Ghost](docs/features/ghost-embeds.md).** Las entradas importadas de Ghost conservan sus imágenes, avisos y tarjetas de enlace.
 
 También funciona junto a [discourse-category-lockdown-nautas](https://github.com/somos-criptonautas/discourse-category-lockdown-nautas): las respuestas privadas siguen visibles para su audiencia dentro de temas bloqueados.
 
@@ -61,6 +62,6 @@ Lee las [reglas del repositorio](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md) 
 
 ## Licencia
 
-[GPL-3.0](LICENSE), heredada de [JtechTools](https://github.com/TripleU613/JtechTools). Autores originales: TripleU, Shalom Karr y Ars18.
+[GPL-3.0](LICENSE), heredada de [JtechTools](https://github.com/TripleU613/JtechTools). Autores originales: TripleU, Shalom Karr y Ars18. Modificado por Criptonautas desde 2026, con cada cambio en el historial de git.
 
-Texto de este README bajo [CC BY-NC-SA 4.0](CC-BY-NC-SA-4.0.txt).
+Nuestros agregados a este README están bajo [CC BY-NC-SA 4.0](CC-BY-NC-SA-4.0.txt); el texto del proyecto original conserva su licencia.

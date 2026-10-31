@@ -26,6 +26,7 @@ The Discourse plugin behind [Criptonautas](https://criptonautas.co): moderator t
 - **[Disteleplus](docs/features/disteleplus.md).** A team chat room mirrored both ways with a Telegram group, with the review queue in Telegram too.
 - **[Another SMTP](docs/features/another-smtp.md).** Send forum email through a different mail server.
 - **[Translator tweaks](docs/features/translator-tweaks.md).** A proxy for the Translator plugin's Google requests.
+- **[Ghost embeds](docs/features/ghost-embeds.md).** Blog posts imported from Ghost keep their images, callouts and link cards.
 
 It also works alongside [discourse-category-lockdown-nautas](https://github.com/somos-criptonautas/discourse-category-lockdown-nautas): private replies stay visible to their audience inside lockdown topics.
 
@@ -61,6 +62,6 @@ Read the [repository rules](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md) and [
 
 ## License
 
-[GPL-3.0](LICENSE), inherited from [JtechTools](https://github.com/TripleU613/JtechTools). Original authors: TripleU, Shalom Karr and Ars18.
+[GPL-3.0](LICENSE), inherited from [JtechTools](https://github.com/TripleU613/JtechTools). Original authors: TripleU, Shalom Karr and Ars18. Modified by Criptonautas since 2026, with every change in the git history.
 
-Text of this README under [CC BY-NC-SA 4.0](CC-BY-NC-SA-4.0.txt).
+Our additions to this README are under [CC BY-NC-SA 4.0](CC-BY-NC-SA-4.0.txt); text from the original project keeps its license.

@@ -32,8 +32,23 @@ module DiscourseDisteleplus
 
     def self.holder_topic
       topic = ::Topic.find_by(id: SiteSetting.disteleplus_polls_topic_id)
-      return topic if topic && !topic.trashed?
-      create_holder_topic
+      topic = create_holder_topic if topic.nil? || topic.trashed?
+      restrict_to_room!(topic)
+      topic
+    end
+
+    # A message for the room's groups, not a public topic: unlisted alone
+    # still lets anyone read the polls by URL. Admins see it as they see every
+    # message. Synced on each poll so it follows disteleplus_allowed_groups.
+    def self.restrict_to_room!(topic)
+      unless topic.private_message?
+        topic.update_columns(archetype: Archetype.private_message, category_id: nil)
+      end
+      group_ids = Access.allowed_group_ids
+      topic.topic_allowed_groups.where.not(group_id: group_ids).delete_all
+      (group_ids - topic.topic_allowed_groups.pluck(:group_id)).each do |group_id|
+        topic.topic_allowed_groups.create!(group_id: group_id)
+      end
     end
 
     # Uncategorized is frequently disallowed (TopicCreator rejects it even
@@ -60,7 +75,7 @@ module DiscourseDisteleplus
         )
       topic = post.topic
       # Unlisted so it never surfaces in lists, closed so nobody replies by
-      # hand — voting only needs the topic to be visible when linked.
+      # hand. holder_topic then makes it a message for the room.
       topic.update_columns(visible: false, closed: true)
       SiteSetting.disteleplus_polls_topic_id = topic.id
       topic
@@ -79,6 +94,12 @@ module DiscourseDisteleplus
           topic_id: holder_topic.id,
           raw: message.raw,
           skip_validations: true,
+          # The holder is closed, which core only lets staff post in. The
+          # author is already allowed in the room; core's poll rights still apply.
+          skip_guardian: true,
+          # The room notifies on its own; a post alert would message every
+          # member of the room's groups about each poll.
+          skip_jobs: true,
         )
       post.validate_polls(true)
 

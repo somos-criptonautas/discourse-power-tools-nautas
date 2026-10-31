@@ -358,6 +358,21 @@ jtech_mod_topic_tools:
       - "mod_categories_enabled"
 
 # ───────────────────────────────────────────────────────────────────────────
+# Jtech — Mod: Users
+# ───────────────────────────────────────────────────────────────────────────
+jtech_mod_users:
+  mod_user_slow_mode_enabled:
+    default: true
+    client: false
+    depends_on:
+      - "mod_categories_enabled"
+  mod_user_slow_mode_moderators:
+    default: true
+    client: false
+    depends_on:
+      - "mod_user_slow_mode_enabled"
+
+# ───────────────────────────────────────────────────────────────────────────
 # Jtech — Mod: Checklists and posting prompts
 # ───────────────────────────────────────────────────────────────────────────
 jtech_mod_checklists:
@@ -526,6 +541,14 @@ jtech_translator:
     requires_confirmation: "simple"
     depends_on:
       - "translator_tweaks_enabled"
+
+# ───────────────────────────────────────────────────────────────────────────
+# Jtech — Ghost embeds
+# ───────────────────────────────────────────────────────────────────────────
+jtech_ghost_embeds:
+  ghost_embeds_enabled:
+    default: false
+    client: false
 
 # ───────────────────────────────────────────────────────────────────────────
 # Jtech — Smart search (synonym query expansion)

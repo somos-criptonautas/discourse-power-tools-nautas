@@ -58,6 +58,21 @@ RSpec.describe "Mini-mod limits" do
       expect(moderated.custom_fields["secret"]).to be_nil
     end
 
+    it "only takes their own uploads as logo or background" do
+      others = Fabricate(:upload, user: Fabricate(:user))
+      own = Fabricate(:upload, user: mini_mod)
+
+      update(moderated, uploaded_logo_id: others.id, uploaded_background_id: others.id)
+      expect(response.status).to eq(200)
+      expect(response.body).not_to include(others.url)
+      moderated.reload
+      expect(moderated.uploaded_logo_id).to be_nil
+      expect(moderated.uploaded_background_id).to be_nil
+
+      update(moderated, uploaded_logo_id: own.id)
+      expect(moderated.reload.uploaded_logo_id).to eq(own.id)
+    end
+
     it "refuses moving the category under one they don't moderate" do
       update(moderated, parent_category_id: other.id)
       expect(response.status).to eq(403)
