@@ -349,6 +349,42 @@ en:
         save: Save checklist
         remove: Remove checklist
     discourse_mod_categories:
+      slow_mode:
+        label: Slow mode
+        none: "No"
+        status: "One post every %{interval}"
+        status_until: "One post every %{interval}, until %{date}"
+        set: Slow mode…
+        change: Change…
+        lift: Lift slow mode
+        lift_confirm: "Lift slow mode for %{username}? They'll get a message saying so."
+        saved: Slow mode set.
+        lifted: Slow mode lifted.
+        hours:
+          one: "%{count} hour"
+          other: "%{count} hours"
+        minutes:
+          one: "%{count} minute"
+          other: "%{count} minutes"
+        modal:
+          title: "Slow mode for %{username}"
+          interval: One post every
+          custom_interval: Other…
+          custom_minutes: Minutes between posts
+          duration: For
+          day: 1 day
+          week: 1 week
+          month: 1 month
+          forever: No end
+          custom_date: Until a date…
+          until: Until
+          reason: Reason (sent to the user)
+          save: Save
+          cancel: Cancel
+        composer:
+          note: "Slow mode: one post every %{interval}."
+          wait: "You can post again in %{time}."
+          waiting: "A post of yours is waiting for approval. You can post again once it's been reviewed."
       post_viewers:
         label: See message viewers
         title: Viewed by
@@ -789,6 +825,8 @@ en:
             mod_election_countback: "fill moderator seat by countback"
             mod_post_made_whisper: "turn post into whisper"
             mod_whisper_made_public: "make whisper public"
+            mod_user_slow_mode_set: "set slow mode"
+            mod_user_slow_mode_lifted: "lift slow mode"
       mod_elections:
         "off": Mod elections are off. Turn them on in the settings below.
         schedule:
@@ -950,6 +988,7 @@ en:
           jtech_mod_notes: "Power Tools Nautas — Mod: Notes"
           jtech_mod_notifications: "Power Tools Nautas — Mod: Notifications"
           jtech_mod_topic_tools: "Power Tools Nautas — Mod: Topic tools"
+          jtech_mod_users: "Power Tools Nautas — Mod: Users"
           jtech_mod_checklists: "Power Tools Nautas — Mod: Checklists"
           jtech_reqpm: Power Tools Nautas — REQ-PM
           jtech_listing_format: Power Tools Nautas — Listing format
